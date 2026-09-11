@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {createTrialService,validateRequest} from '../server/trial-requests.js';
+import {legal,groups,schedules} from '../src/data.js';
+import {translations} from '../src/locales.js';
+import {render} from '../src/render.js';
+const request=(extra={})=>({name:'Test Participant',email:'test@example.com',phone:'+49 (151) 123-4567',age:15,directionId:'sambo-mma',groupId:'sambo-9-15',locale:'de',consent:true,consentVersion:legal.consentVersion,requestId:randomUUID(),...extra});
+const success=async()=>({ok:true,json:async()=>({ok:true,result:{message_id:1}})});
+test('age boundaries and allowed groups are enforced on server',()=>{
+ for(const age of [9,15])assert.ok(validateRequest(request({age})).data);
+ for(const age of [8,16,15.5,'15',null])assert.equal(validateRequest(request({age})).error,'age');
+ assert.ok(validateRequest(request({age:16,groupId:'sambo-16'})).data);
+ assert.equal(validateRequest(request({age:14,directionId:'boxen',groupId:'box-15'})).error,'age');
+ assert.ok(validateRequest(request({directionId:'boxen',groupId:'box-15'})).data);
+ assert.equal(validateRequest(request({directionId:'valset',groupId:'val-junior'})).error,'directionId');
+});
+test('contact, consent and identifier validation',()=>{
+ for(const override of [{name:' '},{name:'a'.repeat(101)},{email:'broken'},{phone:'letters'},{consent:false},{consentVersion:'wrong'},{requestId:'123'},{locale:'ua'},{groupId:'sambo-8'}])assert.ok(validateRequest(request(override)).error);
+});
+test('unconfigured service never sends or reports success',async()=>{let calls=0;const service=createTrialService({fetchImpl:async()=>{calls++;}});const r=await service.handle(request());assert.equal(r.body.code,'not_configured');assert.equal(calls,0);service.close();});
+test('success follows Telegram acknowledgement, retries do not duplicate delivery',async()=>{let calls=0,body;const s=createTrialService({enabled:true,token:'test',chatId:'test',fetchImpl:async(url,opts)=>{calls++;body=JSON.parse(opts.body);return success();}});const d=request({name:'<b>Test</b>'});assert.equal((await s.handle(d)).body.ok,true);assert.equal((await s.handle({...d,locale:'ru'})).body.ok,true);assert.equal(calls,1);assert.equal(body.parse_mode,undefined);assert.match(body.text,/<b>Test<\/b>/);s.close();});
+test('concurrent duplicate request remains pending',async()=>{let done,calls=0;const s=createTrialService({enabled:true,token:'x',chatId:'x',fetchImpl:()=>{calls++;return new Promise(r=>{done=r;});}});const d=request(),first=s.handle(d);assert.equal((await s.handle(d)).body.code,'pending');done(await success());assert.equal((await first).body.ok,true);assert.equal(calls,1);s.close();});
+test('same id with changed payload is rejected',async()=>{const s=createTrialService({enabled:true,token:'x',chatId:'x',fetchImpl:success});const d=request();await s.handle(d);assert.equal((await s.handle({...d,age:14})).body.code,'request_conflict');s.close();});
+test('explicit Telegram rejection can be retried',async()=>{let calls=0;const s=createTrialService({enabled:true,token:'x',chatId:'x',fetchImpl:async()=>++calls===1?{ok:false,json:async()=>({ok:false,error_code:403})}:success()});const d=request();assert.equal((await s.handle(d)).body.code,'delivery_failed');assert.equal((await s.handle(d)).body.ok,true);assert.equal(calls,2);s.close();});
+test('network timeout remains uncertain across service restart and cannot resend',async()=>{const dir=mkdtempSync(path.join(tmpdir(),'ak-test-'));const db=path.join(dir,'state.sqlite');let calls=0;const options={databasePath:db,enabled:true,token:'x',chatId:'x',fetchImpl:async()=>{calls++;throw new Error('timeout');}};let s=createTrialService(options);const d=request();assert.equal((await s.handle(d)).body.code,'uncertain');s.close();s=createTrialService(options);assert.equal((await s.handle(d)).body.code,'uncertain');assert.equal(calls,1);s.close();rmSync(dir,{recursive:true});});
+test('rate limiter bounds repeated attempts',async()=>{const s=createTrialService();let result;for(let i=0;i<13;i++)result=await s.handle(request(),'test-ip');assert.equal(result.httpStatus,429);s.close();});
+test('all four locales have complete matching keys and correct sections',()=>{const keys=Object.keys(translations.de).sort();for(const [l,t] of Object.entries(translations)){assert.deepEqual(Object.keys(t).sort(),keys);const html=render(l);assert.doesNotMatch(html,/undefined|mobile-preview|design-system|Eltern dürfen/);assert.match(html,new RegExp(`<html lang="${l}">`));assert.match(html,/Werwolf 8, 42651 Solingen/);assert.match(html,/method="post"/);assert.match(html,/type="submit" disabled/);}});
+test('data references resolve and confirmed schedules are exact',()=>{for(const g of groups)for(const id of g.scheduleIds)assert.ok(schedules.some(s=>s.id===id));assert.deepEqual(groups.filter(g=>g.programId==='sambo-mma').map(g=>[g.minAge,g.maxAge]),[[9,15],[16,null]]);assert.equal(schedules.find(s=>s.id==='sambo-adult-sat').byArrangement,true);assert.equal(schedules.find(s=>s.id==='val-senior-week').startTime,'17:00');});

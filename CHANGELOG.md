@@ -1,5 +1,14 @@
 # Version history
 
+## 2026-09-11 — Follow-up review
+
+- Confirmed the GitHub connection uses `koss32` and the canonical project branch is `ak-lowen`.
+- Matched all nine existing local project files against the GitHub blob hashes at commit `3f2d2f79cb5215fe7d7f74f25611865704056432`.
+- Confirmed the uploaded original HTML and VALSET image match the archived project inputs byte-for-byte.
+- Fixed the VALSET price amount to use the yellow brand color in both themes. Previously it inherited the dark text color in the light theme while the card retained its blue background.
+- Preserved the reproduction script, original assets, and the repository instructions for future work.
+- Visual browser review remains unavailable: the browser rejected the local HTTP preview with `ERR_BLOCKED_BY_CLIENT`. No browser rendering or interaction pass is claimed.
+
 ## 2026-09-11 — Concept v2: AK LÖWEN × VALSET
 
 User request: preserve the existing concept, add VALSET (previously `[Richtung B]`) at the top and bottom, use blue/yellow for VALSET, and retain AK Löwen's `#F0401F` accent. Save all project files and versions in `koss32/Ak-l-wen`.

@@ -3,3 +3,9 @@ node_modules/
 .env
 test-results/
 dist/
+.vercel/
+.env.*
+!.env.example
+
+.vercel
+.env*

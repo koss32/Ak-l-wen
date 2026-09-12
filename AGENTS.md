@@ -10,6 +10,10 @@ Use only baseline commit `d640c22c5f1d98f81925b5e7668fdb0b65da76c4` on branch `a
 
 The old `concepts/ak-loewen-valset-konzept-v2.html` is historical and must not be used as the implementation source.
 
+## Color rule
+
+Use the orange from the current approved visual file: primary `#E85A22`, light-theme `#C4501E`, lighter accent `#FF7A3D`. Do not use `#FE4123` as the required brand color.
+
 ## Working rules
 
 - Preserve confirmed data in `site/src/data.js`.

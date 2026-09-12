@@ -19,6 +19,10 @@ footer{background:var(--bg-soft);padding:60px 0 28px}.footer-invitation{display:
 :root{--accent-light-theme:#C4501E;--accent-hover:#FF7A3D;--header-offset:100px}
 .valset-grid>*,.val-group>*,.trainer-card>*,.trial-layout>*,.schedule-row>*{min-width:0}
 .valset-grid h2{overflow-wrap:anywhere}
+.field textarea{display:block;width:100%;min-height:100px;resize:vertical;border:1px solid #56565d;background:var(--bg-soft);color:var(--ink);padding:12px;font:16px/1.5 var(--body);border-radius:0}
+.contact-hint{margin:0 0 16px;color:var(--ink)}
+/* Essential copy remains readable during reveals and if observers fail. */
+.motion-in{opacity:1}
 html{scroll-padding-top:var(--header-offset)}section[id],div[id]{scroll-margin-top:var(--header-offset)}
 .wrap{max-width:1320px}.blk{padding-block:88px}.section-head{margin-bottom:32px}
 .hero{min-height:700px;padding-block:70px 80px}.hero-grid{grid-template-columns:1.3fr .8fr;gap:60px;align-items:center}

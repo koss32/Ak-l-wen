@@ -1,10 +1,11 @@
 import {mkdir,cp,writeFile,readFile} from 'node:fs/promises';
 import {render} from './src/render.js';
+import {entryPage} from './src/entry.js';
 import {locales} from './src/data.js';
 await mkdir('dist',{recursive:true});await cp('public','dist',{recursive:true});
 const pages={};
 for(const l of locales){pages[l]={};for(const p of ['','impressum','datenschutz']){const html=render(l,p);await mkdir(`dist/${l}/${p}`,{recursive:true});await writeFile(`dist/${l}/${p?p+'/':''}index.html`,html);pages[l][p||'home']=html;}}
-await writeFile('dist/index.html','<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=de/"><title>AK Löwen × VALSET</title><a href="de/">AK Löwen × VALSET</a>');
+await writeFile('dist/index.html',entryPage);
 await writeFile('dist/robots.txt','User-agent: *\nDisallow: /\n');
 // Downloadable review file: all four locales, scripts, styles and images embedded.
 let standalone=render('de');

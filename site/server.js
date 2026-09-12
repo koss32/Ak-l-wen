@@ -3,6 +3,7 @@ import {readFile,stat,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {render} from './src/render.js';
+import {entryPage} from './src/entry.js';
 import {legal} from './src/data.js';
 import {createTrialService} from './server/trial-requests.js';
 const root=path.dirname(fileURLToPath(import.meta.url));
@@ -15,7 +16,7 @@ const server=http.createServer(async(req,res)=>{
  try{
  const url=new URL(req.url,'http://localhost');
  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
- if(url.pathname==='/'){res.writeHead(302,{Location:'/de/'});return res.end();}
+ if(url.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(req.method==='HEAD'?'':entryPage);}
  if(url.pathname==='/api/trial-requests'){
   const json=(code,body)=>{res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(body));};
   if(req.method!=='POST')return json(405,{ok:false,code:'method'});

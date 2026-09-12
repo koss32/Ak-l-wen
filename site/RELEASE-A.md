@@ -17,14 +17,16 @@ Backup: `backup/site-v1-d640c22-release-a`. Work branch: `codex/release-a`.
 
 ## Verification on 2026-09-12
 
-- `npm test`: 11 passed.
+- `npm test`: 15 passed.
+- `npm run lint`: ESLint 10 recommended checks passed.
+- `node tests/form-browser.mjs`: root language preference, explicit locale priority, one-contact validation, optional fields retained across four locales, confirmed time selection and zero demo POSTs passed.
 - `npm run verify`: desktop, phone, compact, reduced motion, navigation, form, locale preservation and no-JavaScript behavior; 48 screenshots, no reported issues.
 - `node tests/release-a.mjs`: DE/RU/UK/TR at 360, 390, 768, 1024 and 1440 pixels; overflow, filters, booking preselection, locale state, dialog keyboard behavior and eight legal routes passed.
 - `node tests/mobile-locales.mjs`: no reported content overflow.
 - `node tests/outcomes.mjs`: mocked delivery outcomes, safe retries, standalone assets/locales/legal dialogs, HTTP size/origin guards passed. No real Telegram delivery performed.
 - `npm run build`: four localized pages, eight legal placeholder pages, standalone review file.
 - Existing contact HTTPS links returned HTTP 200. The map redirects to an AK-LOEWEN gGmbH place. This does not establish mailbox delivery, account ownership or WhatsApp registration.
-- No dedicated lint or typecheck is configured; JavaScript syntax is checked separately. Browser viewport tests do not certify physical devices, Safari, Firefox or screen-reader use.
+- ESLint is configured; no TypeScript typecheck applies to this JavaScript project. Browser viewport tests do not certify physical devices, Safari, Firefox or screen-reader use.
 
 Run browser tests after starting `npm run dev`; override the URL with `TEST_BASE_URL` if using another port.
 
@@ -34,20 +36,29 @@ Run browser tests after starting `npm run dev`; override the URL with `TEST_BASE
 - Owner-approved Impressum and Datenschutz are absent from both v5 files. Legal routes remain explicitly marked placeholders. Entity name confirmation is not approval of complete legal text.
 - Rotate the token disclosed in chat as required by DOCX §5.4. Configure the replacement only in server secrets and identify the recipient chat. No token was added to this checkout.
 - Vercel deployment is a static **review preview**, with form delivery disabled. The existing Node/SQLite delivery service is retained locally; its persistent local database is not a durable Vercel serverless store. Live deployment needs a suitable durable backend, recipient configuration, approved legal text and a verified delivery test.
-- Broader DOCX items (Telegram webhook/admin roles/bootstrap, additional form fields and changed validation rules, root language negotiation) are not implemented in this visual candidate.
+- Telegram webhook/admin roles/bootstrap and durable hosted delivery remain outstanding.
 - DOCX requests renaming Senior, while current user instructions freeze existing text. Preserve the current name pending clarification.
 - The MD v5 is a short implementation summary; the DOCX has additional functional requirements and older contradictory v2 instructions. Current direct user instructions and the v1 source-of-truth overrides govern this candidate.
 
 Release B has not started. Production publication and Release A acceptance have not been claimed.
 
-## Checkpoint requested by the user
+## Current preview and continuation
 
 Vercel CLI authentication completed. Project: `zumeeeeer-6684s-projects/ak-loewen-release-a`, ID `prj_0kG9RBjUgIn4UktNF1qYU0cCgRvU`. Project root is `site`, framework is Other, build is `npm run build`, output is `dist`.
 
-The first remote build failed because an unanchored ignore rule excluded `site/public/assets`. The rule is now root-anchored; `vercel deploy --dry --json` confirms all four site images are included and `.env.local` is excluded. A replacement deployment has NOT been executed at this checkpoint. The CLI labelled the failed first attempt production despite `--target preview`; verify the next deployment's actual target or use an explicitly preview-scoped API request before allowing it to publish. Failed deployment: `dpl_jbFzyYG9ZbaontLfkp4ecrTSA5JX` (ERROR). No working hosted URL yet.
+A working preview was created through the Vercel API with target omitted; the returned target is null (preview), state READY. Deployment: dpl_HjxfGgAaXJpDWAqh25ksBXVKLuX7. URL: https://ak-loewen-release-kombqkbw4-zumeeeeer-6684s-projects.vercel.app/de/ . Its protected HTML was verified as HTTP 200 using Vercel authenticated curl. This URL contains the earlier layout checkpoint; the next preview will include the form changes below.
 
-Local review server: `http://127.0.0.1:4175/de/`, launched from this checkout with Node watch mode. Port 4173 was already occupied and was not stopped.
+The original failed deployment was never published successfully. Root-anchored ignore rules now include site images and exclude local secrets and runtime data.
 
-An exploratory axe scan reported contrast issues while existing reveal transitions were in progress. Do not claim accessibility certification or a clean axe result. Repeat on settled content/reduced motion and resolve any reproducible violations. Existing regression suites passed as listed above.
+Local review server: http://127.0.0.1:4175/de/ .
 
-Next: finish hosted preview and verify its actual environment; obtain the source trainer portrait and confirmed role; finish the remaining DOCX functional requirements and delivery architecture after recipient/secrets/legal inputs are available. Keep committing and pushing each meaningful part. Do not start Release B without written Release A approval.
+## Latest form and entry changes
+
+- A phone, email or Telegram username is sufficient. Name bounds are 2–80 characters. Server validation explicitly projects allowed fields.
+- Optional preferred time is restricted to the selected group's confirmed schedule. Optional comments are limited to 1000 characters and reject control bytes.
+- New fields and preferred time survive language switches. Confirmed delivery responses include the request ID; demo mode never sends a POST.
+- Root entry chooses a saved supported locale, then a supported browser language, then German. Explicit locale routes remain authoritative. No-JavaScript entry redirects to German.
+- Essential reveal text stays visible. A settled, reduced-motion axe scan found zero automatic violations across four locales at 390 and 1440 pixels. This is not accessibility certification.
+- Existing marketing text remains unchanged; added translations cover only new controls and validation.
+
+Next: obtain clear trainer photo and role, recipient and rotated server secret, approved legal facts/text, then complete durable delivery and Telegram administration. Release B still requires written Release A approval.

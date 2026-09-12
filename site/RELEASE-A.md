@@ -47,7 +47,7 @@ Release B has not started. Production publication and Release A acceptance have 
 
 Vercel CLI authentication completed. Project: `zumeeeeer-6684s-projects/ak-loewen-release-a`, ID `prj_0kG9RBjUgIn4UktNF1qYU0cCgRvU`. Project root is `site`, framework is Other, build is `npm run build`, output is `dist`.
 
-A working preview was created through the Vercel API with target omitted; the returned target is null (preview), state READY. Deployment: dpl_EWUeZu2oMxRjoo2UiteEaz9vmvci. URL: https://ak-loewen-release-fei78i1ou-zumeeeeer-6684s-projects.vercel.app/de/ . Its protected HTML was verified as HTTP 200 using Vercel authenticated curl. This preview contains commit 93f8458, including the form changes below. Hosted HTML was also checked for all three added fields.
+A working preview was created through the Vercel API with target omitted; the returned target is null (preview), state READY. Deployment: dpl_3hMxmqHph2uj35NeLP28vX9LYUcM. URL: https://ak-loewen-release-inbz5zodw-zumeeeeer-6684s-projects.vercel.app/de/ . The project SSO gate was disabled so the review URL opens publicly. The preview contains commit 2068f98, including Namig Aliyev's responsive portrait. Public HTTP 200, portrait loading at 390/1440 pixels and the four-locale form flow were verified against the hosted URL.
 
 The original failed deployment was never published successfully. Root-anchored ignore rules now include site images and exclude local secrets and runtime data.
 

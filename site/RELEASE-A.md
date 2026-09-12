@@ -46,7 +46,7 @@ Release B has not started. Production publication and Release A acceptance have 
 
 Vercel CLI authentication completed. Project: `zumeeeeer-6684s-projects/ak-loewen-release-a`, ID `prj_0kG9RBjUgIn4UktNF1qYU0cCgRvU`. Project root is `site`, framework is Other, build is `npm run build`, output is `dist`.
 
-A working preview was created through the Vercel API with target omitted; the returned target is null (preview), state READY. Deployment: dpl_HjxfGgAaXJpDWAqh25ksBXVKLuX7. URL: https://ak-loewen-release-kombqkbw4-zumeeeeer-6684s-projects.vercel.app/de/ . Its protected HTML was verified as HTTP 200 using Vercel authenticated curl. This URL contains the earlier layout checkpoint; the next preview will include the form changes below.
+A working preview was created through the Vercel API with target omitted; the returned target is null (preview), state READY. Deployment: dpl_EWUeZu2oMxRjoo2UiteEaz9vmvci. URL: https://ak-loewen-release-fei78i1ou-zumeeeeer-6684s-projects.vercel.app/de/ . Its protected HTML was verified as HTTP 200 using Vercel authenticated curl. This preview contains commit 93f8458, including the form changes below. Hosted HTML was also checked for all three added fields.
 
 The original failed deployment was never published successfully. Root-anchored ignore rules now include site images and exclude local secrets and runtime data.
 

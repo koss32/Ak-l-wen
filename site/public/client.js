@@ -68,12 +68,13 @@
   if(oldNode.matches('script,#form-status,#age-suggestion,.field-error,#instagram-message'))return;
   const preserve=new Set(['style','open','hidden','disabled','aria-invalid','aria-expanded','aria-busy']);
   for(const a of Array.from(newNode.attributes)){if(!preserve.has(a.name))oldNode.setAttribute(a.name,a.value);}
+  if(oldNode.matches('[data-locale]')&&!newNode.hasAttribute('aria-current'))oldNode.removeAttribute('aria-current');
   if(oldNode.matches('input,textarea'))return;
   for(let i=0;i<newNode.childNodes.length;i++){if(!oldNode.childNodes[i])oldNode.append(newNode.childNodes[i].cloneNode(true));else morph(oldNode.childNodes[i],newNode.childNodes[i]);}
   while(oldNode.childNodes.length>newNode.childNodes.length)oldNode.lastChild.remove();
  }
  async function changeLanguage(locale,fromHistory=false){
-  if(locale===config.locale)return;const seq=++languageSerial;const previous={group:value('groupId'),direction:value('directionId')};closeMenu();
+  if(locale===config.locale)return;const seq=++languageSerial;const previous={group:value('groupId'),direction:value('directionId'),filters:$$('[data-schedule-filter]').map(el=>[el.id,el.value])};closeMenu();
   try{
    const route=`/${locale}/${config.page?config.page+'/':''}`;
    let text;
@@ -86,6 +87,7 @@
    document.querySelectorAll('link[rel="canonical"],link[rel="alternate"]').forEach(e=>e.remove());parsed.querySelectorAll('link[rel="canonical"],link[rel="alternate"]').forEach(e=>document.head.append(e.cloneNode(true)));
    if($('#directionId')){$('#directionId').value=previous.direction;groupOptions();$('#groupId').value=previous.group;groupOptions();}
    $$('details.discipline').forEach(d=>{d.querySelector('.details-label').textContent=config.t[d.open?'hideDetails':'details'];d.querySelector('summary').setAttribute('aria-expanded',String(d.open));});
+   for(const [id,v] of previous.filters)if(document.getElementById(id))document.getElementById(id).value=v;filterSchedule();
    for(const [id,key] of Object.entries(errorKeys))error(id,key);if(statusKey)status(statusKey,['failed','uncertain','rate','invalid'].includes(statusKey));syncSubmit();
    if(!fromHistory&&location.protocol!=='file:')history.pushState({},'',route+location.hash);
    try{localStorage.setItem('ak-locale',locale);}catch{}
@@ -130,12 +132,31 @@
    if(reduce.matches||(p>=1&&(fade>=1||fade<=0)))world.dataset.scVerifyHold='true';else delete world.dataset.scVerifyHold;
   }
   const artwork=$('[data-valset-art]');if(artwork){const r=artwork.closest('.valset-art').getBoundingClientRect();const p=Math.max(-1,Math.min(1,(innerHeight*.5-r.top)/innerHeight));artwork.style.transform=reduce.matches?'none':`translateY(${p*-12}px) scale(1.04)`;}
-  let id=sections[0]?.id;for(const s of sections){if(s.getBoundingClientRect().top<=160)id=s.id;}
+  let id=sections[0]?.id;for(const s of sections){if(s.getBoundingClientRect().top<=headerOffset()+1)id=s.id;}
   $$('[data-nav]').forEach(a=>{if(a.hash==='#'+id)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});
   if(Math.abs(target-current)>.1&&!reduce.matches)raf=requestAnimationFrame(frame);
  }
  addEventListener('scroll',scheduleMotion,{passive:true});addEventListener('resize',scheduleMotion,{passive:true});reduce.addEventListener('change',scheduleMotion);document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;}else scheduleMotion();});
  const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('is-visible');observer.unobserve(e.target);}}),{threshold:.08});
  if(!reduce.matches)$$('.discipline,.trainer-card,.price-card,.val-group').forEach((el,i)=>{el.classList.add('motion-in');el.style.setProperty('--delay',`${i%3*55}ms`);observer.observe(el);});
- groupOptions();syncSubmit();openHash(!!location.hash);scheduleMotion();
+
+ let questionOpener=null;
+ function closeQuestion(){const d=$('#question-dialog');if(d?.open)d.close();questionOpener?.focus({preventScroll:true});}
+ $('#question-dialog')?.addEventListener('cancel',e=>{e.preventDefault();closeQuestion();});
+ $('#question-dialog')?.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const items=Array.from(e.currentTarget.querySelectorAll('button,a[href]')).filter(el=>!el.disabled&&!el.hidden);const first=items[0],last=items.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
+ $('#question-dialog')?.addEventListener('click',e=>{if(e.target!==e.currentTarget)return;const r=e.currentTarget.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeQuestion();});
+ function filterSchedule(){
+  const filters=$$('[data-schedule-filter]');if(!filters.length)return;
+  const values=Object.fromEntries(filters.map(el=>[el.dataset.scheduleFilter,el.value]));let count=0;
+  $$('[data-schedule-row]').forEach(row=>{const match=(values.brand==='all'||row.dataset.brand===values.brand)&&(values.direction==='all'||row.dataset.directionId===values.direction)&&(values.age==='all'||row.dataset.category===values.age);row.hidden=!match;if(match)count++;});
+  $('#schedule-empty').hidden=count>0;$('#schedule-status').textContent=config.t.scheduleResults.replace('{count}',count);
+ }
+ document.addEventListener('change',e=>{if(e.target.matches('[data-schedule-filter]'))filterSchedule();});
+ document.addEventListener('click',e=>{const opener=e.target.closest('[data-question]');if(opener){e.preventDefault();questionOpener=opener;$('#question-dialog').showModal();$('#question-dialog [data-close-question]').focus();}if(e.target.closest('[data-close-question]'))closeQuestion();});
+ function headerOffset(){return Math.ceil($('.site-header')?.getBoundingClientRect().height||0)+20;}
+ function updateHeaderOffset(){document.documentElement.style.setProperty('--header-offset',headerOffset()+'px');scheduleMotion();}
+ const headerObserver=new ResizeObserver(updateHeaderOffset);if($('.site-header'))headerObserver.observe($('.site-header'));
+ filterSchedule();
+
+ groupOptions();syncSubmit();openHash(!!location.hash);updateHeaderOffset();
 })();

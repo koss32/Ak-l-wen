@@ -3,12 +3,13 @@ import {render} from './src/render.js';
 import {entryPage} from './src/entry.js';
 import {locales} from './src/data.js';
 await mkdir('dist',{recursive:true});await cp('public','dist',{recursive:true});
+const live=process.env.FORM_DELIVERY_ENABLED==='true';
 const pages={};
-for(const l of locales){pages[l]={};for(const p of ['','impressum','datenschutz']){const html=render(l,p);await mkdir(`dist/${l}/${p}`,{recursive:true});await writeFile(`dist/${l}/${p?p+'/':''}index.html`,html);pages[l][p||'home']=html;}}
+for(const l of locales){pages[l]={};for(const p of ['','impressum','datenschutz']){const html=render(l,p,live,process.env.PUBLIC_ORIGIN||'');await mkdir(`dist/${l}/${p}`,{recursive:true});await writeFile(`dist/${l}/${p?p+'/':''}index.html`,html);pages[l][p||'home']=html;}}
 await writeFile('dist/index.html',entryPage);
 await writeFile('dist/robots.txt','User-agent: *\nDisallow: /\n');
 // Downloadable review file: all four locales, scripts, styles and images embedded.
-let standalone=render('de');
+let standalone=render('de','',false);
 const css=(await readFile('public/vendor/scrollcraft.css','utf8'))+'\n'+await readFile('public/style.css','utf8');
 const js=(await readFile('public/vendor/scrollcraft.js','utf8'))+'\n'+await readFile('public/client.js','utf8');
 const assets={};for(const name of ['ak-logo.png','valset.jpg','glove.webp','coach.webp']){const type=name.endsWith('.jpg')?'jpeg':name.split('.').at(-1);assets['/assets/'+name]=`data:image/${type};base64,${(await readFile('public/assets/'+name)).toString('base64')}`;}

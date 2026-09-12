@@ -5,6 +5,9 @@
   "outputDirectory": "dist",
   "trailingSlash": true,
   "git": { "deploymentEnabled": false },
+  "functions": {
+    "api/trial-requests.js": { "maxDuration": 10 }
+  },
   "headers": [
     {
       "source": "/(.*)",

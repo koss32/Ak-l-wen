@@ -14,11 +14,21 @@ The only implementation baseline for future work is:
 
 The old `concepts/ak-loewen-valset-konzept-v2.html` is historical material only. Do not repair it, copy from it, or use it as the implementation baseline.
 
+## Color system
+
+Use the orange shown in the current approved visual file:
+
+- primary AK Löwen orange: `#E85A22`
+- light-theme orange: `#C4501E`
+- lighter accent: `#FF7A3D`
+
+Do not use `#FE4123` as the project's required brand color. Do not replace the current orange with a different red-orange without explicit approval.
+
 ## Required work
 
 Improve the existing v1 visually and functionally without replacing its approved visual language:
 
-- preserve the dark AK Löwen system, orange accent, blue/yellow VALSET system, angular cards, two brand entrances and animated boxing gloves;
+- preserve the dark AK Löwen system, the orange palette above, the blue/yellow VALSET system, angular cards, two brand entrances and animated boxing gloves;
 - improve hero hierarchy and the primary free-trial CTA;
 - reduce repetitive card grids through varied information blocks and visual pauses;
 - strengthen trainer trust without inventing identities, biographies, achievements or images;

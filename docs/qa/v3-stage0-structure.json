@@ -1,0 +1,11 @@
+{
+  "bytes": 3084822,
+  "sha256": "f8b59fa5173dbceff9867f606dfa0408153a27a93d946e1f6c4fcfa307d337b0",
+  "unique_ids": 22,
+  "valid_embedded_images": 11,
+  "script_blocks": 1,
+  "inline_handlers": 0,
+  "utf8": true,
+  "valid_internal_anchors": true,
+  "secret_pattern_matches": 0
+}

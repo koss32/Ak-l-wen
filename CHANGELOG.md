@@ -1,5 +1,13 @@
 # Version history
 
+## 2026-09-12 — v3, stage 0: recovery for approval
+
+- Preserved v2, references, assets and the archived update script byte-for-byte.
+- Added a deterministic UTF-8 recovery script that runs the archived generator in isolation and refuses to overwrite later v3 edits.
+- Added a self-contained recovered preview with a script-hash CSP, blocked network/form submissions and noindex metadata.
+- Verified HTML structure, embedded images, JS syntax, Edge desktop/mobile layout and baseline interactions. Full evidence and outstanding requirements: `docs/v3-stage-0-review.md`.
+- Functional fixes, live submissions, legal completion and animations remain separate parts awaiting user approval.
+
 ## 2026-09-11 — Follow-up review
 
 - Confirmed the GitHub connection uses `koss32` and the canonical project branch is `ak-lowen`.

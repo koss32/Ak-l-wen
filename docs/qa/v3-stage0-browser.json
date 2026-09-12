@@ -1,0 +1,111 @@
+{
+  "browser": "Microsoft Edge 152.0.4191.66",
+  "layouts": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "scrollWidth": 1440,
+      "loaded": true,
+      "theme": "dark"
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "scrollWidth": 1440,
+      "loaded": true,
+      "theme": "light"
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "scrollWidth": 1024,
+      "loaded": true,
+      "theme": "dark"
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "scrollWidth": 1024,
+      "loaded": true,
+      "theme": "light"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "scrollWidth": 768,
+      "loaded": true,
+      "theme": "dark"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "scrollWidth": 768,
+      "loaded": true,
+      "theme": "light"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "loaded": true,
+      "theme": "dark"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "loaded": true,
+      "theme": "light"
+    },
+    {
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360,
+      "loaded": true,
+      "theme": "dark"
+    },
+    {
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360,
+      "loaded": true,
+      "theme": "light"
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "loaded": true,
+      "theme": "dark"
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "loaded": true,
+      "theme": "light"
+    }
+  ],
+  "consoleErrors": [],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:48731/"
+    }
+  ],
+  "screenshots": [
+    "AK-Loewen-stage0-1440-dark.png",
+    "AK-Loewen-stage0-1440-light.png",
+    "AK-Loewen-stage0-390-dark.png"
+  ],
+  "checks": {
+    "theme": true,
+    "mobileMenuEscape": true,
+    "mobileMenuLink": true,
+    "anchors": 8,
+    "accordions": 2,
+    "valsetFormPreselection": true,
+    "demoFormNoTransmission": true,
+    "standaloneFile": true
+  }
+}

@@ -1,29 +1,14 @@
-# AK LÖWEN × VALSET
+# AK-LOEWEN gGmbH
 
-Репозиторий проекта: https://github.com/koss32/Ak-l-wen
+Website project for the specific organization **AK-LOEWEN gGmbH**.
 
-Здесь хранятся исходные материалы, дизайн-концепты, версии и дальнейшая разработка сайта AK Löwen и VALSET Circus Studio. Основная ветка — `ak-lowen`.
+The current implementation baseline is the v1 website from commit [d640c22](https://github.com/koss32/Ak-l-wen/commit/d640c22c5f1d98f81925b5e7668fdb0b65da76c4) on branch `ak-lowen`.
 
-## Текущий концепт
+Start here:
 
-Открыть файл [ak-loewen-valset-konzept-v2.html](concepts/ak-loewen-valset-konzept-v2.html) после скачивания в браузере. HTML самодостаточный: изображения, стили и скрипт встроены; установка зависимостей не требуется.
+- [Binding specification](docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md)
+- [Website source](site/)
+- [Standalone preview](concepts/ak-loewen-valset-site-v1.html)
+- [Verification](site/VERIFICATION.md)
 
-Это дизайн-концепт. Форма демонстрационная: данные не отправляются и не сохраняются. Публикация сайта не выполнялась.
-
-## Файлы
-
-- `concepts/ak-loewen-valset-konzept-v2.html` — концепт от 11.09.2026 с VALSET в шапке, на первом экране, в нижнем блоке, контактах и подвале.
-- `references/ak-loewen-konzept-ZWISCHENSTAND.html` — исходный HTML пользователя без изменений.
-- `assets/valset-original.jpg` — присланное пользователем изображение VALSET без изменения исходных пикселей. В HTML его центральная часть показана через CSS `object-fit`.
-- `assets/ak-loewen-dark.png`, `assets/ak-loewen-light.png` — исходные логотипы, извлечённые из присланного HTML.
-- `scripts/update-concept.py` — воспроизводимое обновление исходного концепта.
-- `CHANGELOG.md` — изменения и результаты проверки.
-
-## Цвета
-
-| Направление | Основной акцент | Дополнительные цвета |
-| --- | --- | --- |
-| AK Löwen | `#F0401F` | Исходная тёмная / светлая тема |
-| VALSET Circus Studio | Жёлтый `#F4CC46` | Тёмно-синий `#071E38`, синий `#103F73` |
-
-Название VALSET и изображение подтверждены текущим запросом пользователя. Точные курсы, группы, расписание и контакты VALSET не добавлялись без подтверждения. Унаследованные из исходника предварительные цены, юридические сведения и другие заглушки остаются материалами концепта, требующими согласования.
+The old v2 concept is historical context only. Future work must modify the v1 implementation and must remain specific to AK-LOEWEN gGmbH. Production deployment is disabled until explicitly approved.

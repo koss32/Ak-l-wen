@@ -1,9 +1,22 @@
-# Project instructions
+# Repository instructions
 
-- Canonical repository: `koss32/Ak-l-wen`; default branch: `ak-lowen`.
-- The user designated this repository for all AK Löwen / VALSET site files, concepts, designs, versions, and future development. Save completed project work to this repository, and verify the resulting remote commit.
-- Preserve the original material under `references/` and `assets/`; add or update reviewed concepts under `concepts/`.
-- Current scope is a design concept. Do not deploy a production site unless the user requests it.
-- Preserve the AK Löwen accent `#F0401F`. Use blue and yellow for VALSET Circus Studio.
-- Do not invent schedules, prices, contact details, instructor identities, or legal text. Keep unresolved material marked as provisional.
-- Keep the standalone HTML concept self-contained and usable after downloading it.
+## Project identity
+
+This repository contains the website for **AK-LOEWEN gGmbH only**. Do not generalize it into a template or repurpose it for another organization.
+
+## Implementation source
+
+Use only baseline commit `d640c22c5f1d98f81925b5e7668fdb0b65da76c4` on branch `ak-lowen`, including `site/` and `concepts/ak-loewen-valset-site-v1.html`.
+
+The old `concepts/ak-loewen-valset-konzept-v2.html` is historical and must not be used as the implementation source.
+
+## Working rules
+
+- Preserve confirmed data in `site/src/data.js`.
+- Do not invent schedules, prices, contacts, legal text, trainer identities, qualifications or achievements.
+- Preserve the approved AK Löwen / VALSET visual systems and current ScrollCraft animation unless a separate approval authorizes a change.
+- Work in reviewed parts and show previews after material stages.
+- Ask focused clarification questions when missing information can change the result.
+- Keep secrets server-side and never commit tokens or personal credentials.
+- Run relevant tests and browser checks before handing off changes.
+- Do not deploy production without explicit user approval.

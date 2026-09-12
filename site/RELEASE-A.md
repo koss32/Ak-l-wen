@@ -39,3 +39,15 @@ Run browser tests after starting `npm run dev`; override the URL with `TEST_BASE
 - The MD v5 is a short implementation summary; the DOCX has additional functional requirements and older contradictory v2 instructions. Current direct user instructions and the v1 source-of-truth overrides govern this candidate.
 
 Release B has not started. Production publication and Release A acceptance have not been claimed.
+
+## Checkpoint requested by the user
+
+Vercel CLI authentication completed. Project: `zumeeeeer-6684s-projects/ak-loewen-release-a`, ID `prj_0kG9RBjUgIn4UktNF1qYU0cCgRvU`. Project root is `site`, framework is Other, build is `npm run build`, output is `dist`.
+
+The first remote build failed because an unanchored ignore rule excluded `site/public/assets`. The rule is now root-anchored; `vercel deploy --dry --json` confirms all four site images are included and `.env.local` is excluded. A replacement deployment has NOT been executed at this checkpoint. The CLI labelled the failed first attempt production despite `--target preview`; verify the next deployment's actual target or use an explicitly preview-scoped API request before allowing it to publish. Failed deployment: `dpl_jbFzyYG9ZbaontLfkp4ecrTSA5JX` (ERROR). No working hosted URL yet.
+
+Local review server: `http://127.0.0.1:4175/de/`, launched from this checkout with Node watch mode. Port 4173 was already occupied and was not stopped.
+
+An exploratory axe scan reported contrast issues while existing reveal transitions were in progress. Do not claim accessibility certification or a clean axe result. Repeat on settled content/reduced motion and resolve any reproducible violations. Existing regression suites passed as listed above.
+
+Next: finish hosted preview and verify its actual environment; obtain the source trainer portrait and confirmed role; finish the remaining DOCX functional requirements and delivery architecture after recipient/secrets/legal inputs are available. Keep committing and pushing each meaningful part. Do not start Release B without written Release A approval.

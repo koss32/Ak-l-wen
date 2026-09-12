@@ -6,13 +6,14 @@ This project is exclusively for **AK-LOEWEN gGmbH**. It is not a reusable templa
 
 The only implementation baseline for future work is:
 
-- repository: `koss32/Ak-l-wen`
-- branch: `ak-lowen`
+- repository: `koss32/Ak-loewen`
+- documentation/default branch: `Ak-loewen`
+- implementation branch: `codex/site-v1`
 - baseline commit: `d640c22c5f1d98f81925b5e7668fdb0b65da76c4`
 - implementation: `site/`
 - standalone preview: `concepts/ak-loewen-valset-site-v1.html`
 
-The old `concepts/ak-loewen-valset-konzept-v2.html` is historical material only. Do not repair it, copy from it, or use it as the implementation baseline.
+The old `concepts/ak-loewen-valset-konzept-v2.html` is historical material only. Do not repair it, copy from it, or use it as the implementation baseline. The main branch contains documentation; implementation work must use `codex/site-v1`.
 
 ## Color system
 

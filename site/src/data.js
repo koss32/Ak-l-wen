@@ -29,6 +29,6 @@ export const trainers = [
 ];
 export const contacts = {
  email:'aklggmbh@gmail.com',telegram:'https://t.me/ak_loewenbot',instagram:'https://www.instagram.com/VALSET_SOLINGEN/',
- whatsappUA:'https://wa.me/380967542528',whatsappDE:'https://wa.me/4915158873852',map:'https://maps.app.goo.gl/q7yJ8i5ee1tLey8j8'
+ whatsappUA:'https://wa.me/380967542528',whatsappDE:'https://wa.me/4915158873852',map:'https://maps.app.goo.gl/q7yJ8i5ee1tLey8j8',trainingAddress:'Werwolf 8, 42651 Solingen'
 };
-export const legal = {entityName:'AK-LOEWEN gGmbH',manager:'Dietrich Schmelzer',address:'Werwolf 8, 42651 Solingen',publicationStatus:'pending',consentVersion:'draft-2026-09-11'};
+export const legal = {entityName:'AK-LOEWEN gGmbH',manager:'Dietrich Schmelzer',registeredAddress:null,publicationStatus:'pending',consentVersion:'draft-2026-09-11'};

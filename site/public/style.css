@@ -38,7 +38,7 @@ html{scroll-padding-top:var(--header-offset)}section[id],div[id]{scroll-margin-t
 .trainer-card{border:0;background:transparent;grid-template-columns:.7fr 1fr;padding:28px 30px 28px 0;gap:25px}
 .trainer-card+.trainer-card{border-left:1px solid var(--line);padding-left:30px;padding-right:0}.trainer-image img{height:260px;filter:grayscale(1);opacity:.8}
 .trainer-copy{padding:0}.trainer-copy h3{font-size:27px}.trainer-copy .trainer-role{font-size:14px}.trainer-copy p{font-size:13px}
-.trainer-image figcaption{font-size:11px;line-height:1.4}.schedule-board{border-top:2px solid var(--accent)}
+.trainer-image picture{display:block}.trainer-image.is-portrait img{filter:none;opacity:1;object-position:50% 18%}.trainer-image figcaption{font-size:11px;line-height:1.4}.trainer-copy>.tlink{margin:0 0 18px}.schedule-board{border-top:2px solid var(--accent)}
 .schedule-filters{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:20px;padding:24px;background:var(--surface)}
 .schedule-filters .field{margin:0}.schedule-filters select{min-height:48px}.schedule-status{padding:14px 0;min-height:48px;font-variant-numeric:tabular-nums}
 .schedule-row{display:grid;grid-template-columns:1.1fr 1fr auto;align-items:center;gap:26px;padding:25px 22px;border-top:1px solid var(--line);border-left:2px solid transparent}

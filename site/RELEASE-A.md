@@ -8,6 +8,7 @@ Backup: `backup/site-v1-d640c22-release-a`. Work branch: `codex/release-a`.
 - Approved orange `#E85A22`, hover `#FF7A3D`, reserved light-theme token `#C4501E`. No new light theme was introduced.
 - Stronger trial CTA and secondary brand choices; revised mobile glove placement without changing choreography or vendor files.
 - Trainer section, horizontal prices, and form layout revised using existing copy and confirmed data.
+- User-approved Namig Aliyev portrait is published in responsive AVIF, WebP and JPEG sources with a direct Instagram link. No qualifications or achievements were added.
 - Schedule shows eight recurring schedule records directly, with brand, discipline and age-category filters, result count, empty state and group preselection.
 - Telegram question dialog links to `https://t.me/ak_loewenbot?start=site_question`; Escape, backdrop closing, keyboard focus containment and return supported. No message is sent by opening it.
 - Fixed stale `aria-current` on language switches; preserve form and schedule filters across all four locales.
@@ -32,9 +33,9 @@ Run browser tests after starting `npm run dev`; override the URL with `TEST_BASE
 
 ## Outstanding before full functional acceptance
 
-- A clear source portrait of Namig Aliyev is needed. Instagram supplied only a 100×100 avatar; no fictional likeness was generated or published. Confirm the discipline/role before assigning him to an existing trainer card.
+- Namig Aliyev's biography, qualifications and achievements remain unpublished because no confirmed details were supplied.
 - Owner-approved Impressum and Datenschutz are absent from both v5 files. Legal routes remain explicitly marked placeholders. Entity name confirmation is not approval of complete legal text.
-- Rotate the token disclosed in chat as required by DOCX §5.4. Configure the replacement only in server secrets and identify the recipient chat. No token was added to this checkout.
+- A replacement bot token is configured as a hidden Vercel Preview secret. It was not added to this checkout or client output. The recipient chat still needs to be identified before delivery can be enabled.
 - Vercel deployment is a static **review preview**, with form delivery disabled. The existing Node/SQLite delivery service is retained locally; its persistent local database is not a durable Vercel serverless store. Live deployment needs a suitable durable backend, recipient configuration, approved legal text and a verified delivery test.
 - Telegram webhook/admin roles/bootstrap and durable hosted delivery remain outstanding.
 - DOCX requests renaming Senior, while current user instructions freeze existing text. Preserve the current name pending clarification.

@@ -7,6 +7,7 @@ try{
  await p.goto(base+'/');await p.waitForURL('**/ru/');
  await p.evaluate(()=>localStorage.setItem('ak-locale','tr'));await p.goto(base+'/');await p.waitForURL('**/tr/');
  await p.goto(base+'/de/');assert.equal(await p.locator('html').getAttribute('lang'),'de');
+ const activeLanguage=p.locator('.site-header .languages a[aria-current]');assert.equal(await activeLanguage.evaluate(element=>getComputedStyle(element).textDecorationLine),'none');assert.notEqual(await activeLanguage.evaluate(element=>getComputedStyle(element).boxShadow),'none');
  await p.fill('#name','Test Person');await p.fill('#age','18');await p.check('#consent');await p.locator('#submit-trial').click();assert.equal(await p.locator('#telegram').getAttribute('aria-invalid'),'true');
  await p.fill('#telegram','@test_person');await p.selectOption('#preferredTime','box-week');await p.fill('#comment','Test comment');let posts=0;p.on('request',r=>{if(r.method()==='POST')posts++;});
  for(const lang of ['ru','uk','tr','de']){await p.locator(`.site-header [data-locale="${lang}"]`).click();await p.waitForFunction(l=>document.documentElement.lang===l,lang);assert.equal(await p.inputValue('#telegram'),'@test_person');assert.equal(await p.inputValue('#preferredTime'),'box-week');assert.equal(await p.inputValue('#comment'),'Test comment');await p.locator('#submit-trial').click();assert.equal(await p.locator('#form-status').getAttribute('role'),'status');}

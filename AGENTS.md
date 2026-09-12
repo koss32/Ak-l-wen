@@ -2,11 +2,14 @@
 
 ## Project identity
 
-This repository contains the website for **AK-LOEWEN gGmbH only**. Do not generalize it into a template or repurpose it for another organization.
+This repository is **koss32/Ak-loewen** and contains the website for **AK-LOEWEN gGmbH only**. Do not generalize it into a template or repurpose it for another organization.
 
-## Implementation source
+## Branches and source of truth
 
-Use only baseline commit `d640c22c5f1d98f81925b5e7668fdb0b65da76c4` on branch `ak-lowen`, including `site/` and `concepts/ak-loewen-valset-site-v1.html`.
+- default documentation branch: `Ak-loewen`
+- implementation branch: `codex/site-v1`
+- implementation baseline: commit `d640c22c5f1d98f81925b5e7668fdb0b65da76c4`
+- implementation directories: `site/` and `concepts/ak-loewen-valset-site-v1.html`
 
 The old `concepts/ak-loewen-valset-konzept-v2.html` is historical and must not be used as the implementation source.
 

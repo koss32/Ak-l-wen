@@ -4,6 +4,14 @@ Website project for the specific organization **AK-LOEWEN gGmbH**.
 
 The current implementation baseline is the v1 website from commit [d640c22](https://github.com/koss32/Ak-l-wen/commit/d640c22c5f1d98f81925b5e7668fdb0b65da76c4) on branch `ak-lowen`.
 
+Current approved orange palette:
+
+- primary: `#E85A22`
+- light theme: `#C4501E`
+- lighter accent: `#FF7A3D`
+
+`#FE4123` is not the required brand color.
+
 Start here:
 
 - [Binding specification](docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md)

@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "checks": [
+    "de desktop: every menu target, repeated click, direct hash, back/forward, disclosure, manual scroll, supplied portrait/profile",
+    "de mobile: every menu target, repeated click, direct hash, back/forward, disclosure, manual scroll, supplied portrait/profile",
+    "ru desktop: every menu target, repeated click, direct hash, back/forward, disclosure, manual scroll, supplied portrait/profile",
+    "ru mobile: every menu target, repeated click, direct hash, back/forward, disclosure, manual scroll, supplied portrait/profile",
+    "uk desktop: every menu target, repeated click, direct hash, back/forward, disclosure, manual scroll, supplied portrait/profile",
+    "uk mobile: every menu target, repeated click, direct hash, back/forward, disclosure, manual scroll, supplied portrait/profile",
+    "tr desktop: every menu target, repeated click, direct hash, back/forward, disclosure, manual scroll, supplied portrait/profile",
+    "tr mobile: every menu target, repeated click, direct hash, back/forward, disclosure, manual scroll, supplied portrait/profile",
+    "normal smooth scrolling and locale switch: correct settled highlight",
+    "offline standalone: four locales, embedded portrait, active navigation; original image bytes served"
+  ],
+  "screenshots": [
+    "test-results/navigation-trainer/desktop-schedule-active.png",
+    "test-results/navigation-trainer/desktop-de-trainer.png",
+    "test-results/navigation-trainer/phone-de-trainer.png",
+    "test-results/navigation-trainer/desktop-ru-trainer.png",
+    "test-results/navigation-trainer/phone-ru-trainer.png"
+  ],
+  "issues": []
+}

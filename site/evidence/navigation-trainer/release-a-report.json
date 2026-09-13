@@ -1,0 +1,40 @@
+{
+  "checks": [
+    "approved palette, unchanged choreography/reveal code, publication remains pending",
+    "de: 12 widths 320–1440px, all 6 groups/8 time records, 2 legal routes, schedule booking, touch/input sizing",
+    "ru: 12 widths 320–1440px, all 6 groups/8 time records, 2 legal routes, schedule booking, touch/input sizing",
+    "uk: 12 widths 320–1440px, all 6 groups/8 time records, 2 legal routes, schedule booking, touch/input sizing",
+    "tr: 12 widths 320–1440px, all 6 groups/8 time records, 2 legal routes, schedule booking, touch/input sizing",
+    "keyboard skip/menu/Escape focus, corrected field errors, age suggestion focus, unique locale markers, retained data, demo zero POST, static reduced-motion gloves",
+    "ScrollCraft mounted, normal-motion gloves move, locale morph retains reveals, trainer reveals remain visible",
+    "forced-colors keyboard focus and readable no-JavaScript schedule"
+  ],
+  "shots": [
+    "test-results/release-a-extra/de-start.png",
+    "test-results/release-a-extra/de-trainer.png",
+    "test-results/release-a-extra/de-stundenplan.png",
+    "test-results/release-a-extra/de-preise.png",
+    "test-results/release-a-extra/de-probetraining.png",
+    "test-results/release-a-extra/de-valset.png",
+    "test-results/release-a-extra/ru-start.png",
+    "test-results/release-a-extra/ru-trainer.png",
+    "test-results/release-a-extra/ru-stundenplan.png",
+    "test-results/release-a-extra/ru-preise.png",
+    "test-results/release-a-extra/ru-probetraining.png",
+    "test-results/release-a-extra/ru-valset.png",
+    "test-results/release-a-extra/uk-start.png",
+    "test-results/release-a-extra/uk-trainer.png",
+    "test-results/release-a-extra/uk-stundenplan.png",
+    "test-results/release-a-extra/uk-preise.png",
+    "test-results/release-a-extra/uk-probetraining.png",
+    "test-results/release-a-extra/uk-valset.png",
+    "test-results/release-a-extra/tr-start.png",
+    "test-results/release-a-extra/tr-trainer.png",
+    "test-results/release-a-extra/tr-stundenplan.png",
+    "test-results/release-a-extra/tr-preise.png",
+    "test-results/release-a-extra/tr-probetraining.png",
+    "test-results/release-a-extra/tr-valset.png",
+    "test-results/release-a-extra/forced-colors.png"
+  ],
+  "issues": []
+}

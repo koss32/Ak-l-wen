@@ -7,7 +7,7 @@
 - Website implementation branch: `codex/site-v1`.
 - Implementation baseline: commit `d640c22c5f1d98f81925b5e7668fdb0b65da76c4`.
 - The legal/customer identity is specifically **AK-LOEWEN gGmbH**. Do not rename it to another organisation or invent a different company.
-- The binding source of truth is `docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md` and its DOCX counterpart on branch `Ak-loewen`. Implementation work is made on `codex/site-v1`.
+- The binding source of truth is `docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md` and its DOCX counterpart on branch `Ak-loewen`. `codex/site-v1` is the original implementation ancestor; the current continuation branch below contains the newer reviewed changes.
 
 ## Active continuation — 13 September 2026
 

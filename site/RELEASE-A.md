@@ -1,15 +1,21 @@
 # Release A review candidate
 
+## Current continuation — 2026-09-13
+
+The sections dated 2026-09-12 below are historical verification records. Current implementation adds a persistent light/dark control, collapsed schedule, selected-time handoff to the form, Telegram booking entry and user-requested VALSET/scroll refinements. The user explicitly requested these motion changes; this does not authorize unrelated Release B work or production publication.
+
+The Telegram recipient and Preview secrets have since been configured; the user confirmed a direct Bot API test. Website-to-Telegram delivery remains disabled pending the deferred Upstash/legal work. No end-to-end website delivery is claimed. See HANDOFF.md for current verification and deployment status.
+
 Base: `d640c22c5f1d98f81925b5e7668fdb0b65da76c4`.
 Backup: `backup/site-v1-d640c22-release-a`. Work branch: `codex/release-a`.
 
 ## Implemented
 
-- Approved orange `#E85A22`, hover `#FF7A3D`, reserved light-theme token `#C4501E`. No new light theme was introduced.
+- Approved orange `#E85A22`, hover `#FF7A3D`, light-theme token `#C4501E`.
 - Stronger trial CTA and secondary brand choices; revised mobile glove placement without changing choreography or vendor files.
 - Trainer section, horizontal prices, and form layout revised using existing copy and confirmed data.
 - User-approved Namig Aliyev portrait is published in responsive AVIF, WebP and JPEG sources with a direct Instagram link. No qualifications or achievements were added.
-- Schedule shows eight recurring schedule records directly, with brand, discipline and age-category filters, result count, empty state and group preselection.
+- Schedule contains eight recurring schedule records behind a closed-by-default disclosure, with brand, discipline and age-category filters, result count, empty state and group preselection.
 - Telegram question dialog links to `https://t.me/ak_loewenbot?start=site_question`; Escape, backdrop closing, keyboard focus containment and return supported. No message is sent by opening it.
 - Fixed stale `aria-current` on language switches; preserve form and schedule filters across all four locales.
 - Header offset uses actual header height for responsive navigation.
@@ -35,7 +41,7 @@ Run browser tests after starting `npm run dev`; override the URL with `TEST_BASE
 
 - Namig Aliyev's biography, qualifications and achievements remain unpublished because no confirmed details were supplied.
 - Owner-approved Impressum and Datenschutz are absent from both v5 files. Legal routes remain explicitly marked placeholders. Entity name confirmation is not approval of complete legal text.
-- A replacement bot token is configured as a hidden Vercel Preview secret. It was not added to this checkout or client output. The recipient chat still needs to be identified before delivery can be enabled.
+- Bot token and recipient chat are configured as hidden Vercel Preview secrets. Their values are not stored in this checkout or client output.
 - Vercel deployment is a static **review preview**, with form delivery disabled. The existing Node/SQLite delivery service is retained locally; its persistent local database is not a durable Vercel serverless store. Live deployment needs a suitable durable backend, recipient configuration, approved legal text and a verified delivery test.
 - Telegram webhook/admin roles/bootstrap and durable hosted delivery remain outstanding.
 - DOCX requests renaming Senior, while current user instructions freeze existing text. Preserve the current name pending clarification.
@@ -62,4 +68,4 @@ Local review server: http://127.0.0.1:4175/de/ .
 - Essential reveal text stays visible. A settled, reduced-motion axe scan found zero automatic violations across four locales at 390 and 1440 pixels. This is not accessibility certification.
 - Existing marketing text remains unchanged; added translations cover only new controls and validation.
 
-Next: obtain clear trainer photo and role, recipient and rotated server secret, approved legal facts/text, then complete durable delivery and Telegram administration. Release B still requires written Release A approval.
+Next backend work, when the user resumes the deferred step: approve legal facts/text and provision Upstash, then complete durable delivery and Telegram administration. The provided trainer photo and configured recipient are already handled. Broader Release B work still requires approval beyond the explicitly requested motion refinements.

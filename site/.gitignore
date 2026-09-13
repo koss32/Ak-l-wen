@@ -2,6 +2,7 @@ node_modules/
 .state/
 .env
 test-results/
+.swarm_run/
 dist/
 .vercel/
 .env.*

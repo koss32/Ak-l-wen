@@ -1,5 +1,20 @@
 # Verification · website v1
 
+## Release A review — 13 September 2026
+
+Base: current `codex/site-v1` HEAD `e82e4692dc89e76d68684ef838d2c44c7044207c`. Review branch: `release-a-review-20260913`. Runtime: Node 24.21.0; installed headless Chrome. No production deployment or real delivery.
+
+- `npm run build`: passed; four localized pages, eight explicitly pending legal pages and a self-contained HTML review file.
+- `npm test`: 11/11 passed.
+- `npm run verify`: passed, 48 screenshots, no reported page errors, failed images or horizontal overflow; desktop, phone, compact phone, reduced motion, navigation, disclosures, locale/form preservation and no-JavaScript behavior.
+- `node tests/release-a.mjs`: passed, 25 screenshots. All four locales at 12 widths from 320 to 1440px; all six groups/eight recurring schedule records; legal identity and publication safeguards; keyboard skip/menu/Escape focus, form correction focus, unique current-language markers, retained reveal classes, unchanged original glove choreography, forced-colors focus and readable no-JavaScript schedule.
+- `node tests/outcomes.mjs`: passed; mocked delivery success/uncertainty/failure, same-ID retry, standalone languages/images/legal dialog, HTTP size/origin guards. An initial test raced the asynchronous dialog close event; it now waits for detachment before asserting removal. No production behavior was bypassed.
+- `node tests/mobile-locales.mjs`: passed; 15 screenshots across RU/UK/TR, no detected overflow. Overflow now causes an assertion failure rather than only logging.
+- Actual desktop/mobile screenshots were inspected for hero, trainers, schedule, pricing, form and VALSET. Independent read-only reviews checked source-of-truth consistency and the final implementation.
+
+Physical-device and assistive-technology review, human translation review, approved legal texts, missing trainer facts, and real delivery configuration/verification remain outstanding. The comparison page is a captured review snapshot, not a promise of continuous live updates. Release B requires explicit approval.
+
+
 Verified locally on 12 September 2026 in headless installed Chrome, Node 24.21.0. No production deployment or real Telegram delivery was performed.
 
 ## Results

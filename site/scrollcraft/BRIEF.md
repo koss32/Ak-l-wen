@@ -7,7 +7,7 @@ Brief assembled from the user's explicit request, approved v2 and specification 
 3. Energy decision: strong opening, quiet readable practical content, distinct blue/yellow VALSET ending.
 4. Memorable moment: two black/orange boxing gloves separate and rotate gently as the visitor scrolls into the disciplines. Natural flow, no scroll hijacking.
 5. Signature requested: «чёрные либо оранжевые боксерские перчатки которые при прокручиваниии страницы вниз имеют премиальную анимацию».
-6. Range: preserve approved v2 composition, color palette and angular cards. Spec v3 supplies the refined orange #FE4123 and supersedes older repository instructions.
+6. Range: preserve the current v1 composition and angular visual language. The binding v5 source of truth supersedes this historical brief: primary #E85A22, light-theme orange #C4501E, lighter accent #FF7A3D. VALSET retains its separate navy/blue/yellow identity.
 7. Distinct sections, fixed anchor navigation and two brand entrances are explicit requirements. Do not replace with a continuous cinematic world.
 8. Assets: original v2 logos and VALSET illustration. Generate one transparent glove and one anonymous coach portrait. No real children's photographs, no invented trainer identity or achievements.
 

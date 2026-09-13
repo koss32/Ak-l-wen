@@ -1,5 +1,18 @@
 # Version history
 
+## 2026-09-13 — Release A review refinement
+
+- Continued current `codex/site-v1` HEAD `e82e4692dc89e76d68684ef838d2c44c7044207c` on `release-a-review-20260913`; retained existing baseline backup `backup/site-v1-d640c22-release-a`. No merge or production deployment.
+- Restored approved AK palette `#E85A22` / `#C4501E` / `#FF7A3D`, corrected stale implementation briefs, and retained separate VALSET navy/blue/yellow styling.
+- Strengthened primary trial CTA and mobile touch targets; made the secondary hero action quieter.
+- Replaced repeated trainer/price grids with text-led trainer rows and compact price comparisons. Existing placeholder images remain explicitly labeled; no trainer facts or images were invented.
+- Displayed all six groups and eight confirmed recurring schedule records directly from the canonical data, with group-aware booking links, local timezone and adult Saturday arrangement qualifier.
+- Grouped the existing trial form into selection, contact and privacy sections, moved the demo warning ahead of personal inputs, and retained disabled real delivery.
+- Fixed skip/menu focus transfer, stale current-language markers, runtime reveal-class preservation and corrected group errors/focus.
+- Displayed the canonical legal identity AK-LOEWEN gGmbH; legal texts and publication approval remain pending.
+- Added Release A regression checks and made mobile-locale overflow fail verification. Original ScrollCraft engine, glove choreography, assets and historical concepts remain unchanged.
+
+
 ## 2026-09-11 — Follow-up review
 
 - Confirmed the GitHub connection uses `koss32` and the canonical project branch is `ak-lowen`.

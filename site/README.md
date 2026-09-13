@@ -21,6 +21,14 @@ npm run verify
 
 Сборка создаёт `dist/` с четырьмя страницами, восемью юридическими заглушками и `dist/ak-loewen-valset-v1.html`: автономным файлом для просмотра без установки. Статическая сборка всегда остаётся в демонстрационном режиме. В `tests/browser.mjs` указан установленный Chrome для Windows; на другой системе скорректируйте путь браузера.
 
+## Release A review · 13 September 2026
+
+Review branch: `release-a-review-20260913`, derived from current implementation HEAD `e82e4692dc89e76d68684ef838d2c44c7044207c`. Canonical v5 takes priority over the historical notes below. Existing baseline backup: `backup/site-v1-d640c22-release-a`.
+
+The refinement restores the approved orange palette, strengthens the primary hero CTA, introduces text-led trainer rows, a complete data-driven schedule, compact pricing comparisons and a three-part trial form. Existing motion and all four locales remain. This is a review build, not production; legal texts and real delivery remain disabled/pending. Release B is not included.
+
+After starting the server, additionally run `node tests/release-a.mjs`, `node tests/mobile-locales.mjs` and `node tests/outcomes.mjs` from `site/`. The new checks cover all locales at 12 viewport widths (320–1440px), exact schedule data, keyboard focus, language-state preservation, motion and publication safeguards. The standalone review file is `dist/ak-loewen-valset-v1.html` after `npm run build`; open it directly without a server.
+
 ## Реализовано
 
 - Порядок и визуальный характер v2, фиксированное меню, мобильное диалоговое меню, якоря и взаимоисключающие раскрывающиеся дисциплины.
@@ -39,7 +47,7 @@ npm run verify
 
 Для запуска нужны:
 
-1. Официальное наименование юридического лица, утверждённые Impressum и Datenschutz. Заменить заглушки и версию согласия, затем установить `legal.publicationStatus` в `published`.
+1. Утверждённые Impressum и Datenschutz для подтверждённого юридического лица **AK-LOEWEN gGmbH**. Юридические тексты и реквизиты требуют отдельного согласования. Заменить заглушки и версию согласия, затем установить `legal.publicationStatus` в `published` только после разрешения на публикацию.
 2. `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID_AK` только в серверном окружении. `.env.example` не содержит секретов. Проверить доставку в нужный чат с владельцем, затем включить публичную версию.
 3. HTTPS, фактический `PUBLIC_ORIGIN`, постоянный каталог `STATE_DIRECTORY`. Он должен сохраняться между перезапусками. Реализация рассчитана на один экземпляр Node с локальным SQLite; для нескольких экземпляров необходим общий журнал и общий rate limiter. За обратным прокси лимит сейчас группирует запросы по адресу прокси; доверенные IP-заголовки намеренно не принимаются без конфигурации.
 4. Убрать `noindex,nofollow` и запрет в robots.txt после готовности к публикации. Canonical и hreflang генерируются при заданном PUBLIC_ORIGIN. Публикация в этой задаче не выполнялась.

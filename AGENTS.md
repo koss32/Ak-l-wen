@@ -9,6 +9,14 @@
 - The legal/customer identity is specifically **AK-LOEWEN gGmbH**. Do not rename it to another organisation or invent a different company.
 - The binding source of truth is `docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md` and its DOCX counterpart on branch `Ak-loewen`. Implementation work is made on `codex/site-v1`.
 
+## Active continuation — 13 September 2026
+
+- Continue this work on `fix-navigation-trainer-handoff-20260913`, derived from `release-a-review-20260913` at `89240013bda8090c0b93091a1ed9d4f7785f427d`. `codex/site-v1` is its earlier implementation ancestor, not the newest follow-up.
+- Read `docs/HANDOFF-navigation-trainer.md` first for current requirements, checkpoints, tests and next steps. Use `git log -1` for the current exact HEAD; do not reset to the old baseline.
+- The user requested meaningful progress checkpoints to be committed and pushed to GitHub, with verification status and remaining work recorded before stopping. Do not leave completed work only on the local machine. Never commit credentials, personal form data, runtime state, dependency folders or unrelated personal files.
+- Use subagents for independent review/documentation/testing where useful. Give each a distinct scope; the lead integrates and verifies actual changes.
+- These instructions do not authorize merges, production deployment, activating real form delivery or Release B. Keep all existing publication safeguards.
+
 ## Working rules
 
 - The current website source is under `site/` on `codex/site-v1`. The standalone preview is `concepts/ak-loewen-valset-site-v1.html` on the same branch.

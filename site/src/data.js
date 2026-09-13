@@ -25,7 +25,7 @@ export const schedules = [
 ].map(s=>({...s,timezone:'Europe/Berlin'}));
 export const trainers = [
  {id:'anar',programId:'boxen',name:'Anar Karimov',languages:['ru','tr','uk'],image:'coach.webp',biographyStatus:'pending',achievementsStatus:'pending'},
- {id:'sambo-coach',programId:'sambo-mma',name:null,languages:['ru','tr','uk'],image:'coach.webp',biographyStatus:'pending',achievementsStatus:'pending'}
+ {id:'sambo-coach',programId:'sambo-mma',name:'Namag Aliyev',localizedName:{ru:'Намаг Алиев',uk:'Намаг Алієв'},languages:['ru','tr','uk'],image:'namag-aliyev.jpg',imageSource:'user-supplied',imageWidth:1122,imageHeight:1402,instagram:'https://www.instagram.com/aliyev__11/',instagramHandle:'@aliyev__11',biographyStatus:'pending',achievementsStatus:'pending'}
 ];
 export const contacts = {
  email:'aklggmbh@gmail.com',telegram:'https://t.me/ak_loewenbot',instagram:'https://www.instagram.com/VALSET_SOLINGEN/',

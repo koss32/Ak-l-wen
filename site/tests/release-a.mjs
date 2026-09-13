@@ -32,8 +32,8 @@ try{
   for(const program of programs)assert.ok((await p.locator('#preise').innerText()).includes(String(program.monthlyPriceEUR)));
   assert.equal(await p.locator('.trainer-card').count(),trainers.length);
   assert.ok((await p.locator('#trainer').innerText()).includes('Anar Karimov'));
-  assert.ok((await p.locator('#trainer').innerText()).includes(translations[locale].coachName));
-  assert.equal(await p.locator('.trainer-image figcaption').count(),2);
+  for(const trainer of trainers)assert.ok((await p.locator('#trainer').innerText()).includes(trainer.localizedName?.[locale]||trainer.name||translations[locale].coachName));
+  assert.equal(await p.locator('.trainer-image figcaption').count(),trainers.filter(tr=>tr.imageSource!=='user-supplied').length);
   assert.ok((await p.locator('#kontakt').innerText()).includes(legal.entityName));
   for(const width of [320,360,390,540,541,768,800,801,1024,1190,1191,1440]){
    await p.setViewportSize({width,height:900});

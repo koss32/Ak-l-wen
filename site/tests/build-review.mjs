@@ -1,0 +1,26 @@
+import {execFileSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+
+// Exercise a live hosted build without enabling delivery in the downloadable file.
+try {
+ execFileSync(process.execPath,['build.js'],{env:{...process.env,FORM_DELIVERY_ENABLED:'true'}});
+ const html=readFileSync('dist/ak-loewen-valset-v1.html','utf8');
+ const metadata=html.match(/<script>(window\.__AK_PAGES__=[\s\S]*?)<\/script>/)[1];
+ const context={window:{}};vm.runInNewContext(metadata,context);
+ for(const pages of Object.values(context.window.__AK_PAGES__)){
+  for(const page of Object.values(pages)){
+   const data=JSON.parse(page.match(/id="page-data">([\s\S]*?)<\/script>/)[1]);
+   assert.equal(data.live,false);
+  }
+ }
+ for(const width of [480,960])for(const ext of ['avif','webp','jpg']){
+  assert.match(context.window.__AK_ASSETS__[`/assets/namig-${width}.${ext}`],/^data:image\//);
+ }
+ const head=html.slice(0,html.indexOf('<script>window.__AK_PAGES__'));
+ assert.doesNotMatch(head,/(?:src|srcset)="\/assets\//);
+ console.log('PASS: standalone embeds trainer assets and keeps every locale in demo mode.');
+} finally {
+ execFileSync(process.execPath,['build.js'],{env:{...process.env,FORM_DELIVERY_ENABLED:'false'}});
+}

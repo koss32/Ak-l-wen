@@ -7,6 +7,7 @@ function json(res,status,body){res.setHeader('Cache-Control','no-store');res.sta
 
 export default async function handler(req,res){
  if(req.method!=='POST')return json(res,405,{ok:false,code:'method'});
+ if(process.env.FORM_DELIVERY_ENABLED!=='true')return json(res,503,{ok:false,code:'not_configured'});
  if(!req.headers['content-type']?.startsWith('application/json'))return json(res,415,{ok:false,code:'content_type'});
  const expectedOrigin=process.env.PUBLIC_ORIGIN||`https://${req.headers.host}`;
  if(req.headers.origin&&req.headers.origin!==expectedOrigin)return json(res,403,{ok:false,code:'origin'});

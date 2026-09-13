@@ -6,7 +6,7 @@
   "trailingSlash": true,
   "git": { "deploymentEnabled": false },
   "functions": {
-    "api/trial-requests.js": { "maxDuration": 10 }
+    "api/trial-requests.js": { "maxDuration": 30 }
   },
   "headers": [
     {

@@ -12,8 +12,12 @@ if fingerprint then
  if fingerprint~=ARGV[1] then return 'conflict' end
  local status=redis.call('HGET',KEYS[1],'status')
  if status=='failed' then
-  redis.call('HSET',KEYS[1],'status','pending')
+  redis.call('HSET',KEYS[1],'status','pending','received',ARGV[2])
   return 'claimed'
+ end
+ if status=='pending' and tonumber(ARGV[2])-tonumber(redis.call('HGET',KEYS[1],'received') or '0')>60000 then
+  redis.call('HSET',KEYS[1],'status','uncertain')
+  return 'uncertain'
  end
  return status
 end
@@ -26,17 +30,23 @@ local count=redis.call('INCR',KEYS[1])
 if count==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end
 return count`;
 
+const markScript=`
+if redis.call('HGET',KEYS[1],'status')=='delivered' then return 'delivered' end
+redis.call('HSET',KEYS[1],'status',ARGV[1],'telegramMessageId',ARGV[2])
+redis.call('EXPIRE',KEYS[1],ARGV[3])
+return ARGV[1]`;
+
 export function createUpstashLedger(redis){
  return {
   async limited(ip){const key=createHash('sha256').update(ip).digest('hex').slice(0,24);return Number(await redis.eval(rateScript,[`trial:rate:${key}`],[rateWindow]))>rateLimit;},
   claim:(id,fingerprint,received)=>redis.eval(claimScript,[`trial:req:${id}`],[fingerprint,String(received),ledgerTtl]),
-  async mark(id,status,messageId=''){await redis.hset(`trial:req:${id}`,{status,telegramMessageId:String(messageId)});await redis.expire(`trial:req:${id}`,ledgerTtl);}
+  mark:(id,status,messageId='')=>redis.eval(markScript,[`trial:req:${id}`],[status,String(messageId),ledgerTtl])
  };
 }
 
 const reply=(httpStatus,code,ok=false,requestId='')=>({httpStatus,body:{ok,code,...(requestId?{requestId}:{})}});
 
-export function createHostedTrialService({ledger,token='',chatId='',fetchImpl=fetch,timeoutMs=10000,clock=()=>Date.now()}={}){
+export function createHostedTrialService({ledger,token='',chatId='',fetchImpl=fetch,timeoutMs=6000,clock=()=>Date.now()}={}){
  async function handle(raw,ip='unknown'){
   if(!ledger||!token||!chatId)return reply(503,'not_configured');
   if(await ledger.limited(ip))return reply(429,'rate_limited');
@@ -69,7 +79,12 @@ export function createHostedTrialService({ledger,token='',chatId='',fetchImpl=fe
    const response=await fetchImpl(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text}),signal:AbortSignal.timeout(timeoutMs)});
    let answer;try{answer=await response.json();}catch{throw new Error('Uncertain response');}
    if(response.ok&&answer.ok===true&&Number.isInteger(answer.result?.message_id)){
-    await ledger.mark(d.requestId,'delivered',answer.result.message_id);return reply(200,'delivered',true,d.requestId);
+    // Telegram's acknowledgement is authoritative. A failed ledger write must
+    // not turn a confirmed send into a retry that creates a duplicate message.
+    try{await ledger.mark(d.requestId,'delivered',answer.result.message_id);}catch{
+     try{await ledger.mark(d.requestId,'delivered',answer.result.message_id);}catch{ /* Pending expires to uncertain; never automatically resend. */ }
+    }
+    return reply(200,'delivered',true,d.requestId);
    }
    const certainFailure=answer.ok===false&&Number.isInteger(answer.error_code)&&answer.error_code>=400&&answer.error_code<500;
    await ledger.mark(d.requestId,certainFailure?'failed':'uncertain');

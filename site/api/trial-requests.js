@@ -20,5 +20,5 @@ export default async function handler(req,res){
   const service=createHostedTrialService({ledger:createUpstashLedger(redis),token:process.env.TELEGRAM_BOT_TOKEN,chatId:process.env.TELEGRAM_CHAT_ID_AK});
   const ip=String(req.headers['x-forwarded-for']||req.socket?.remoteAddress||'unknown').split(',')[0].trim();
   const result=await service.handle(req.body,ip);return json(res,result.httpStatus,result.body);
- }catch{return json(res,503,{ok:false,code:'not_configured'});}
+ }catch{return json(res,503,{ok:false,code:'uncertain'});}
 }

@@ -34,3 +34,11 @@ test('hosted delivery keeps ambiguous results from being resent',async()=>{
 test('hosted delivery refuses missing configuration before accepting data',async()=>{
  let calls=0;const service=createHostedTrialService({fetchImpl:async()=>{calls++;}});const result=await service.handle(request());assert.equal(result.httpStatus,503);assert.equal(result.body.code,'not_configured');assert.equal(calls,0);
 });
+
+test('confirmed Telegram acknowledgement survives ledger persistence failure without resending',async()=>{
+ const ledger=memoryLedger();let calls=0;
+ ledger.mark=async()=>{throw new Error('Storage temporarily unavailable');};
+ const service=createHostedTrialService({ledger,token:'test',chatId:'test',fetchImpl:async()=>{calls++;return telegramSuccess();}});
+ const payload=request();assert.equal((await service.handle(payload)).body.ok,true);
+ assert.equal((await service.handle(payload)).body.code,'pending');assert.equal(calls,1);
+});

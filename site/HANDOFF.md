@@ -1,5 +1,19 @@
 # Передача работы по AK-LOEWEN
 
+## Последнее обновление: Vercel опубликован, Upstash ожидает владельца
+
+Пользователь вновь разрешил подключить Upstash/Telegram и обновить Vercel. Новый публичный preview приложения из `62e8e77`:
+https://ak-loewen-release-r7mo6szax-zumeeeeer-6684s-projects.vercel.app/ru/
+
+Deployment `dpl_EsNupjBJ79utEu2TcAK6YyuHNafw`: READY, target=null (preview). Проверено HTTP 200, переключение темы и закрытое расписание на RU/390px. В page-data live=false; POST пустого тела в /api/trial-requests возвращает 503/not_configured, отправки сообщений не было.
+
+Upstash не создан: `vercel integration list --all` вернул No resources found. Повтор установки `upstash/upstash-kv` с free/fra1, eviction=false, prodPack=false, autoUpgrade=false, только preview, остановлен Vercel с integration_terms_acceptance_required. Пользователю открыта страница:
+https://vercel.com/zumeeeeer-6684s-projects/~/integrations/accept-terms/upstash?source=cli
+
+Ждать подтверждения принятия условий владельцем, затем повторить установку с теми же параметрами. Не утверждать, что приём заявок работает. TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID_AK присутствуют как Hidden Preview secrets; FORM_DELIVERY_ENABLED пока отсутствует. Не печатать секреты.
+
+После установки: проверить Redis/Lua и повторные запросы; устранить риски зависшего pending и ошибки сохранения после Telegram acknowledgment; включить доставку только после проверки, обновить preview и выполнить одну явно тестовую заявку с проверкой Redis+Telegram acknowledgment. Дополнительная юридическая информация по-прежнему не подтверждена. Ниже — история предыдущей передачи.
+
 ## Где остановились
 
 Ветка `codex/release-a`, приложение в `site/`. Последний предыдущий коммит — `e760baa` (standalone-ассеты и передача работы), серверный — `3f6ee9a`. В продолжении от 2026-09-13 пользователь запросил исправление навигации, скрытое расписание, дополнительные анимации, Telegram-кнопку, светлую/тёмную тему и push. Юридические данные и подключение Upstash он явно отложил — не запрашивать их повторно без необходимости и не активировать доставку молча.

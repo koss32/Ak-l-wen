@@ -1,18 +1,21 @@
 # Передача работы по AK-LOEWEN
 
-## Последнее обновление: Vercel опубликован, Upstash ожидает владельца
+## Актуальное состояние — 2026-09-13: заявки работают
 
-Пользователь вновь разрешил подключить Upstash/Telegram и обновить Vercel. Новый публичный preview приложения из `62e8e77`:
-https://ak-loewen-release-r7mo6szax-zumeeeeer-6684s-projects.vercel.app/ru/
+Пользователь принял условия Upstash. Рабочий публичный preview приложения из `dbfbd2e`:
+https://ak-loewen-release-3eiye9i0a-zumeeeeer-6684s-projects.vercel.app/ru/
 
-Deployment `dpl_EsNupjBJ79utEu2TcAK6YyuHNafw`: READY, target=null (preview). Проверено HTTP 200, переключение темы и закрытое расписание на RU/390px. В page-data live=false; POST пустого тела в /api/trial-requests возвращает 503/not_configured, отправки сообщений не было.
+Deployment `dpl_HWEvSAY7VHpywjXXweiZmGGsdeuk`: READY, target=null (preview). FORM_DELIVERY_ENABLED=true только в Preview. Telegram token/chat ID остаются скрытыми серверными переменными; в HTML и архиве их нет.
 
-Upstash не создан: `vercel integration list --all` вернул No resources found. Повтор установки `upstash/upstash-kv` с free/fra1, eviction=false, prodPack=false, autoUpgrade=false, только preview, остановлен Vercel с integration_terms_acceptance_required. Пользователю открыта страница:
-https://vercel.com/zumeeeeer-6684s-projects/~/integrations/accept-terms/upstash?source=cli
+Upstash `ak-loewen-trial-requests`, resource `store_rWVfHUV63fedtG1j`, installation `icfg_WtUPPJi6fYkl9LKtFbj8Mt7G`: free, fra1, eviction=false, prodPack=false, autoUpgrade=false, подключён только к Preview проекта ak-loewen-release-a.
 
-Ждать подтверждения принятия условий владельцем, затем повторить установку с теми же параметрами. Не утверждать, что приём заявок работает. TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID_AK присутствуют как Hidden Preview secrets; FORM_DELIVERY_ENABLED пока отсутствует. Не печатать секреты.
+Проверена цепочка браузер → Vercel API → Upstash → Telegram → сообщение об успехе в форме. Тестовый requestId `e0dcedd9-7e47-44b5-b70d-cd1b11f53071`, Telegram message_id=5, Redis status=delivered. Пользователь прислал полученное сообщение и подтвердил «пришло». Повтор того же запроса вернул ту же доставку без нового сообщения. Чужой Origin отклонён с HTTP403. Первоначальная ошибка тестового инструмента была связана с чтением тела HTTP redirect; проверка повторена с тем же requestId, без новой отправки.
 
-После установки: проверить Redis/Lua и повторные запросы; устранить риски зависшего pending и ошибки сохранения после Telegram acknowledgment; включить доставку только после проверки, обновить preview и выполнить одну явно тестовую заявку с проверкой Redis+Telegram acknowledgment. Дополнительная юридическая информация по-прежнему не подтверждена. Ниже — история предыдущей передачи.
+Проверки: lint, 19 unit-тестов, build; `tests/upstash-integration.mjs` на настоящем Redis подтвердил конкурентный claim, conflict, TTL, невозможность понизить delivered, перевод старого pending в uncertain и rate limit. Журнал хранит технические метаданные на 30 дней, без текста заявки. При неопределённом результате автоматическая повторная отправка запрещена; требуется ручная сверка с Telegram. Pending старше 60 секунд становится uncertain при следующей попытке проверки. Подтверждённый Telegram send не становится ошибкой из-за сбоя сохранения журнала; запись delivered повторяется один раз. Лимит Vercel Function 30 секунд, Telegram timeout 6 секунд.
+
+Скачиваемый standalone HTML намеренно демонстрационный: реальная отправка доступна по HTTPS-ссылке выше. Прямые сообщения боту, Telegram webhook/диалог записи и административные роли ещё не реализованы. VALSET по-прежнему использует Instagram. Юридические страницы остаются явно обозначенными черновиками; production не публиковался. Осталось завершить прежний независимый мобильный аудит и юридические данные. Автоматически установленные CLI skills исключены из git локально; секретный временный env-файл после проверки удаляется.
+
+Ниже — историческая передача. Утверждения в ней об отсутствии Upstash и выключенной hosted-доставке устарели; использовать актуальное состояние выше.
 
 ## Где остановились
 

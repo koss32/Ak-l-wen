@@ -4,7 +4,7 @@
 
 The sections dated 2026-09-12 below are historical verification records. Current implementation adds a persistent light/dark control, collapsed schedule, selected-time handoff to the form, Telegram booking entry and user-requested VALSET/scroll refinements. The user explicitly requested these motion changes; this does not authorize unrelated Release B work or production publication.
 
-The Telegram recipient and Preview secrets have since been configured; the user confirmed a direct Bot API test. Website-to-Telegram delivery remains disabled pending the deferred Upstash/legal work. No end-to-end website delivery is claimed. See HANDOFF.md for current verification and deployment status.
+Upstash is now provisioned on the free Frankfurt plan, Preview-only, with auto-upgrade disabled. Website-to-Telegram delivery is enabled and verified through the browser: Redis recorded delivered, Telegram acknowledged message 5, and the user confirmed receipt. A replay returned the same delivery without a second message. Lint, 19 unit tests and real Redis integration checks passed. See HANDOFF.md for the current deployment URL and remaining legal/webhook work; subsequent disabled-delivery notes are historical.
 
 Base: `d640c22c5f1d98f81925b5e7668fdb0b65da76c4`.
 Backup: `backup/site-v1-d640c22-release-a`. Work branch: `codex/release-a`.

@@ -17,6 +17,22 @@ Then read **`site/AI-MAP.md`** for exact file/function ownership and **`site/REL
 - Do not confuse Release 2 with historical v2 design concepts.
 - Standalone preview: `concepts/ak-loewen-valset-release-2.html`; build from `site/`.
 
+## Pending owner-requested change — VALSET navigation
+
+This is a **planned next change, not yet implemented**.
+
+On the opening/hero screen the user sees the two direction cards: **AK Löwen** and **VALSET**.
+
+Required behavior for VALSET:
+
+1. Clicking the VALSET direction/card on the opening screen should navigate/scroll to the dedicated **VALSET section** (`#valset`) instead of skipping directly to the booking form.
+2. Inside the VALSET section, the **book / trial / “Записаться”** action should navigate/scroll to the trial form (`#probetraining`).
+3. That VALSET booking action should keep/preselect VALSET in the form through the existing `data-direction="valset"` behavior.
+4. Preserve normal anchor navigation, keyboard accessibility, reduced-motion behavior, locale switching, and mobile behavior.
+5. Do not change unrelated AK Löwen navigation unless required for consistency.
+
+Implementation routing: start with `site/src/render.js`, especially `DirectionEntry(...)`, `ValsetSection(...)` and links targeting `#probetraining`; only touch `site/public/client.js` if the existing anchor/data-direction handling needs adjustment. Current code already has `ValsetSection` booking links to `#probetraining` with `data-direction="valset"`; the main requested change is the hero/start-screen VALSET route.
+
 ## Identity and source of truth
 
 - Legal/customer identity is **AK-LOEWEN gGmbH**; current presentation includes **VALSET**. Never substitute another company.

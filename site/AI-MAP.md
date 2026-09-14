@@ -293,3 +293,35 @@ Run browser scripts only when the appropriate browser/runtime is available, and 
 After repository changes, update the canonical `CURRENT HANDOFF` block in [`Ak-loewen/index.md`](https://github.com/koss32/Ak-loewen/blob/Ak-loewen/index.md).
 
 Record exact branch/commit, keep owner-approved current version separate from WIP, and update this map if feature ownership or architecture changed.
+## Telegram-native bot (implemented, off by default)
+
+```text
+Telegram update -> api/telegram-webhook.js (raw 128 KiB boundary + strong secret)
+  -> server/bot-runtime.js -> server/telegram-bot.js pure update reducer
+  -> server/bot-store.js versioned bounded JSON aggregate
+  -> Redis Lua generation CAS (dedupe + domain + action + outbox atomically)
+External authenticated scheduler -> api/telegram-worker.js
+  -> lease -> beginDelivery final guard -> Telegram HTTP with timeout -> terminal result
+```
+
+- `server/bot-store.js` — memory test adapter and complete Redis/Upstash aggregate
+  adapter; 512 KiB capacity guard, 30-minute sessions/actions, 30-day domain/outbox/
+  dedupe retention, Lua CAS with opaque generation, runnable-recipient ordering,
+  leased/sending fencing, final reminder guard and conservative result classification.
+- `server/telegram-bot.js` — RU/DE private intake, data-driven groups/schedules,
+  adult/minor/guardian/privacy/preview validation, durable client lookup, staff card
+  refresh/confirm/reschedule/cancel/reply preview, reminders and outbox drainer.
+- `server/bot-runtime.js` — no volatile production fallback. Source legal `pending`
+  permits info-only operation while booking remains gated by source + environment +
+  exact consent version + HTTPS privacy URL.
+- `api/telegram-webhook.js` / `api/telegram-worker.js` — protected Vercel boundaries.
+  No webhook registration, deployment or scheduler is installed by the repository.
+- `api/telegram-link.js` — intentional 503. The ownership-proofed web bridge is
+  explicitly excluded; public request-ID association is not available.
+- `tests/bot-*.test.js`, `tests/telegram-bot.test.js`, `tests/telegram-api.test.js` —
+  complete flow, concurrency/fencing/security tests, including real local Redis Lua.
+- `BOT-SETUP.md` / `BOT-VERIFICATION.md` — configuration, legal gate, retention,
+  scaling limit, uncertainty runbook and exact current test evidence.
+
+The existing `/api/trial-requests` path is unchanged. Current source legal status is
+`pending`, so native booking remains unavailable until owner/legal publication work.

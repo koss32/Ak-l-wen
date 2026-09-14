@@ -1,24 +1,33 @@
-# AK-LOEWEN gGmbH
+# AK-LOEWEN gGmbH × VALSET
 
-Website project for the specific organization **AK-LOEWEN gGmbH**.
+Website repository for **AK-LOEWEN gGmbH × VALSET**.
 
-Repository: [koss32/Ak-loewen](https://github.com/koss32/Ak-loewen)
+## Start here
 
-## Correct source locations
+**AI/agent entrypoint:** [`index.md`](index.md)  
+**Detailed repository map:** [`docs/AI-REPOSITORY-MAP.md`](docs/AI-REPOSITORY-MAP.md)
 
-- Documentation/default branch: `Ak-loewen`
-- Website implementation branch: `codex/site-v1`
-- Baseline commit: [d640c22](https://github.com/koss32/Ak-loewen/commit/d640c22c5f1d98f81925b5e7668fdb0b65da76c4)
-- Website source: [site/ on codex/site-v1](https://github.com/koss32/Ak-loewen/tree/codex/site-v1/site)
-- Standalone preview: [ak-loewen-valset-site-v1.html](https://github.com/koss32/Ak-loewen/blob/codex/site-v1/concepts/ak-loewen-valset-site-v1.html)
-- Binding specification: [TЗ](https://github.com/koss32/Ak-loewen/blob/Ak-loewen/docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md)
+The default branch `Ak-loewen` is documentation/navigation. The **current approved website implementation is `release-2/site/`**.
 
-Do not use the old v2 concept as the implementation source. Future work must modify the v1 implementation on `codex/site-v1` and must remain specific to AK-LOEWEN gGmbH.
+## Current implementation
 
-Current approved orange palette:
+- Branch: [`release-2`](https://github.com/koss32/Ak-loewen/tree/release-2)
+- Source: [`release-2/site/`](https://github.com/koss32/Ak-loewen/tree/release-2/site)
+- Release instructions: [`site/RELEASE-2.md`](https://github.com/koss32/Ak-loewen/blob/release-2/site/RELEASE-2.md)
+- AI implementation map: [`site/AI-MAP.md`](https://github.com/koss32/Ak-loewen/blob/release-2/site/AI-MAP.md)
+- Standalone review file: [`concepts/ak-loewen-valset-release-2.html`](https://github.com/koss32/Ak-loewen/blob/release-2/concepts/ak-loewen-valset-release-2.html)
+- Approved code baseline: [`c8591e0`](https://github.com/koss32/Ak-loewen/commit/c8591e0aa1e197cdcc3eb850b174c6114467b595)
 
-- primary: `#E85A22`
-- light theme: `#C4501E`
-- lighter accent: `#FF7A3D`
+`codex/site-v1` is deprecated. Do not use it as the starting point for new website work.
 
-`#FE4123` is not the required brand color. Production deployment is disabled until explicitly approved.
+## Baseline specification
+
+[`docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md`](docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md) remains the baseline factual specification except where owner-approved Release 2 changes supersede it.
+
+## Brand guardrails
+
+AK palette: `#E85A22` / `#C4501E` / `#FF7A3D`. `#FE4123` is not the required brand color. VALSET keeps its navy/blue/yellow visual system.
+
+## AI handoff rule
+
+Every repository-changing AI session must update the `CURRENT HANDOFF` block in [`index.md`](index.md) before finishing, while keeping unapproved feature branches clearly separate from the current approved version.

@@ -1,40 +1,62 @@
-# AK-LOEWEN gGmbH × VALSET · Релиз 2
+# AK-LOEWEN gGmbH × VALSET · Release 2
 
-Текущая реализация — `site/` в ветке `release-2`. Сначала прочитайте [RELEASE-2.md](RELEASE-2.md): там согласованные изменения и ограничения. Исторические `RELEASE-A.md`, `VERIFICATION.md`, старые brief-файлы и тесты не являются подтверждением проверки релиза 2.
+## AI / developer start
 
-## Запуск
+Before broad search:
 
-Нужен Node.js 24 или новее. Из `site/`:
+1. read the canonical router: https://github.com/koss32/Ak-loewen/blob/Ak-loewen/index.md
+2. read [`AI-MAP.md`](AI-MAP.md) for exact file/function ownership;
+3. read [`RELEASE-2.md`](RELEASE-2.md) for approved Release 2 decisions/limitations;
+4. open only task-relevant source files.
+
+Current implementation is `site/` on branch `release-2`. `codex/site-v1` is deprecated and must not be used for new implementation work.
+
+## Run
+
+Requires Node.js 24+. From `site/`:
 
 ```sh
+npm ci
 node server.js
 ```
 
-Локальный сервер: `http://127.0.0.1:4173/ru/`. Также доступны `/de/`, `/uk/`, `/tr/`. Для установки зависимостей проекта используйте `npm ci`.
+Local server: `http://127.0.0.1:4173/ru/`; also `/de/`, `/uk/`, `/tr/`.
 
-## Сборка и просмотр
+## Build / review
 
 ```sh
 node build.js
 ```
 
-Создаются локализованные страницы в `dist/` и автономный `dist/ak-loewen-valset-release-2.html`. Его готовая копия находится в `../concepts/ak-loewen-valset-release-2.html`. Автономный файл всегда демонстрационный: заявок не отправляет. Обычные страницы сборки используют существующий флаг `FORM_DELIVERY_ENABLED` — не включайте его без согласования.
+This creates localized pages in `dist/` and `dist/ak-loewen-valset-release-2.html`. A ready standalone review copy lives at `../concepts/ak-loewen-valset-release-2.html`.
 
-## Основные файлы
+The standalone file is a review artifact and does **not** submit applications. Ordinary built pages use the existing `FORM_DELIVERY_ENABLED` switch; do not enable real delivery without explicit authorization.
 
-- `src/data.js` — программы, группы, расписание, цены, тренеры и контакты.
-- `src/render.js`, `src/locales.js` — HTML и четыре локализации.
-- `src/family-copy.js`, `first-visit-copy.js`, `booking-copy.js` — новые тексты.
-- `public/client.js` — форма, локализация и существующая анимация перчаток.
-- `public/scroll-motion.js` — новая анимация появления блоков.
-- `public/style.css` — темы, адаптация и визуальные эффекты.
-- `server/validate-request.js` — проверка заявки.
-- `src/trial-message.js` — общее сообщение в Telegram.
-- `server/trial-requests.js` — локальный серверный обработчик с SQLite.
-- `server/hosted-trial.js`, `api/trial-requests.js` — hosted-обработчик с Redis.
+## Main source files
 
-## Доставка и публикация
+- `src/data.js` — confirmed programs/groups/schedules/prices/trainers/contacts/legal state.
+- `src/locales.js` — main DE/RU/UK/TR copy.
+- `src/family-copy.js`, `first-visit-copy.js`, `booking-copy.js` — Release 2 specialized copy.
+- `src/render.js` — HTML structure/components/form markup.
+- `public/style.css` — visual system/themes/responsive layout.
+- `public/client.js` — form UX, locale switching, navigation, schedule filters, glove animation.
+- `public/scroll-motion.js` — section entrance/reveal choreography.
+- `server/validate-request.js` — authoritative request validation.
+- `src/trial-message.js` — Telegram lead-message formatter.
+- `server/trial-requests.js` — local SQLite delivery service.
+- `server/hosted-trial.js`, `api/trial-requests.js` — hosted Upstash/Vercel delivery path.
+- `build.js`, `server.js`, `vercel.json` — build/local runtime/Vercel config.
 
-AK Löwen и VALSET используют один настроенный приём заявок через Telegram; в hosted-обработчике сохранён `TELEGRAM_CHAT_ID_AK`. Instagram для VALSET необязателен. Серверные секреты не хранить в HTML или репозитории.
+See [`AI-MAP.md`](AI-MAP.md) before editing large files; it maps functions/selectors to responsibilities.
 
-Публикация требует утверждённых Impressum/Datenschutz, согласованных настроек хостинга и отдельного разрешения владельца. Эта работа не включала развёртывание, реальные заявки или проверку доставки. Прежние тесты сохранены в истории, но для новых сценариев не обновлялись и не запускались.
+## Delivery / publication boundary
+
+AK Löwen and VALSET use one configured Telegram intake; Instagram remains optional for VALSET. Secrets must stay server-side.
+
+Publication requires approved Impressum/Datenschutz, agreed hosting/configuration and explicit owner permission. Do not deploy, enable delivery, configure production webhook/secrets or send test leads without authorization.
+
+Historical verification is not proof for a new revision. Run and report only the checks actually executed.
+
+## Handoff rule
+
+Every AI/agent that changes the repository must update the `CURRENT HANDOFF` block in the default-branch `index.md` before finishing, while keeping approved and WIP versions clearly separate.

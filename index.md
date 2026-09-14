@@ -7,13 +7,14 @@
 
 <!-- AI-CURRENT-HANDOFF: keep this block short and current -->
 - **Current approved implementation:** `release-2`
-- **Approved code baseline:** `c8591e0aa1e197cdcc3eb850b174c6114467b595`
+- **Current release-2 branch head:** `8d03f33282dc4dbba6b62d6123ef8b562cb9d5a2` — documentation/navigation only
+- **Approved website code baseline:** `c8591e0aa1e197cdcc3eb850b174c6114467b595`
 - **Implementation root:** `site/` on `release-2`
 - **Status:** `APPROVED SOURCE / NOT PRODUCTION-ACTIVATED`
 - **Start next task with:** `index.md` → `release-2/AGENTS.md` → `release-2/site/AI-MAP.md` → only task-relevant files
-- **Latest work branch not approved as a release:** `feature/telegram-bot-mvp` (created from `release-2`; do not treat it as current unless the owner explicitly says to continue it)
-- **Deprecated branch:** `codex/site-v1` — historical only, never choose it for new implementation work
-- **Next-agent note:** Release 2 is the authoritative website version. Do not spend context rediscovering v1/Release A/v2 unless the task explicitly asks for history or comparison.
+- **Telegram WIP branch:** `feature/telegram-bot-mvp` currently points to `c8591e0aa1e197cdcc3eb850b174c6114467b595`; it contains no committed bot implementation beyond Release 2 and is **not** an approved release
+- **Deprecated v1 marker:** `codex/site-v1` head `9884d17a7abf98e9122b61c9c42b17892946217e`; historical/recovery only
+- **Next-agent note:** Release 2 is authoritative. Do not spend context rediscovering v1/Release A/v2 unless the task explicitly asks for history/recovery/comparison.
 <!-- /AI-CURRENT-HANDOFF -->
 
 ### Mandatory end-of-work handoff protocol
@@ -23,11 +24,11 @@ Every AI/agent that makes repository changes must, before finishing:
 1. determine the exact branch and final commit containing its work;
 2. decide whether that work is **approved/current** or only **work-in-progress** — never promote a WIP branch by assumption;
 3. update the `CURRENT HANDOFF` block above with the current approved branch/commit and any relevant WIP pointer;
-4. update `release-2/site/AI-MAP.md` (or the map on the new approved branch) if file ownership, architecture, endpoints, build paths or major modules changed;
+4. update the active implementation's `site/AI-MAP.md` if file ownership, architecture, endpoints, build paths or major modules changed;
 5. leave the next agent a one-paragraph route: **which branch to open, which commit is current, which 1–3 files to read first, and what remains**;
 6. never overwrite the approved pointer merely because a feature branch exists.
 
-If the active implementation branch changes in the future, update this file, root `AGENTS.md`, root `README.md`, and the active branch's `AGENTS.md` in the same handoff.
+If the active implementation branch changes in the future, update this file, root `AGENTS.md`, root `README.md`, the baseline routing notice, and the active branch's `AGENTS.md`/`site/AI-MAP.md` in the same handoff.
 
 ## Repository identity
 
@@ -45,10 +46,10 @@ The default branch **`Ak-loewen` is the documentation/navigation branch**. The c
 | Release 2 instructions | [`release-2/site/RELEASE-2.md`](https://github.com/koss32/Ak-loewen/blob/release-2/site/RELEASE-2.md) | Read before material changes |
 | File/function map | [`release-2/site/AI-MAP.md`](https://github.com/koss32/Ak-loewen/blob/release-2/site/AI-MAP.md) | Fast task routing |
 | Standalone Release 2 preview | [`release-2/concepts/ak-loewen-valset-release-2.html`](https://github.com/koss32/Ak-loewen/blob/release-2/concepts/ak-loewen-valset-release-2.html) | Review artifact only |
-| Baseline specification | [`docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md`](https://github.com/koss32/Ak-loewen/blob/Ak-loewen/docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md) | Facts not superseded by Release 2 |
+| Baseline specification | [`docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md`](https://github.com/koss32/Ak-loewen/blob/Ak-loewen/docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md) | Facts not superseded by Release 2; routing notice at top |
 | Previous release baseline | [`codex/release-a`](https://github.com/koss32/Ak-loewen/tree/codex/release-a) | Historical predecessor |
 | Old v1 branch | [`codex/site-v1`](https://github.com/koss32/Ak-loewen/tree/codex/site-v1) | **DEPRECATED — do not work here** |
-| Telegram bot feature branch | [`feature/telegram-bot-mvp`](https://github.com/koss32/Ak-loewen/tree/feature/telegram-bot-mvp) | WIP only unless owner explicitly resumes it |
+| Telegram bot feature branch | [`feature/telegram-bot-mvp`](https://github.com/koss32/Ak-loewen/tree/feature/telegram-bot-mvp) | Empty/WIP pointer at Release 2 code baseline unless later updated |
 
 ## Minimal reading order
 

@@ -1,8 +1,7 @@
 import {DatabaseSync} from 'node:sqlite';
 import {createHash} from 'node:crypto';
-import {schedules} from '../src/data.js';
-
 import {validateRequest} from './validate-request.js';
+import {formatTrialMessage} from '../src/trial-message.js';
 export {validateRequest} from './validate-request.js';
 
 export function createTrialService({databasePath=':memory:',token='',chatId='',enabled=false,fetchImpl=fetch,timeoutMs=10000,clock=()=>Date.now()}={}){
@@ -27,7 +26,7 @@ export function createTrialService({databasePath=':memory:',token='',chatId='',e
    if(existing.status==='pending')return reply(202,'pending');
    db.prepare("UPDATE requests SET status='pending' WHERE id=?").run(d.requestId);
   }else db.prepare("INSERT INTO requests VALUES (?,?,'pending',?)").run(d.requestId,fingerprint,clock());
-  const text=[`AK Löwen · Probetraining`,`${d.directionId} · ${d.groupId}`,`Name: ${d.name}`,`E-Mail: ${d.email}`,`Telefon: ${d.phone}`,`Telegram: ${d.telegram}`,`Zeit: ${d.preferredTime ? JSON.stringify(schedules.find(s=>s.id===d.preferredTime)) : '—'}`,`Kommentar: ${d.comment}`,`Alter: ${d.age}`,`Sprache: ${d.locale}`,`Datenschutz: ${d.consentVersion}`,`Request: ${d.requestId}`,`Eingang: ${new Date(clock()).toISOString()}`].join('\n');
+  const text=formatTrialMessage(d,new Date(clock()).toISOString());
   try{
    const result=await fetchImpl(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text}),signal:AbortSignal.timeout(timeoutMs)});
    let answer;try{answer=await result.json();}catch{throw new Error('Uncertain response');}

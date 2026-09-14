@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
-import {schedules} from '../src/data.js';
 import {validateRequest} from './validate-request.js';
+import {formatTrialMessage} from '../src/trial-message.js';
 
 const ledgerTtl=30*24*60*60;
 const rateWindow=5*60;
@@ -59,22 +59,7 @@ export function createHostedTrialService({ledger,token='',chatId='',fetchImpl=fe
   if(state==='uncertain')return reply(409,'uncertain');
   if(state==='pending')return reply(202,'pending');
   if(state!=='claimed')return reply(503,'not_configured');
-  const schedule=d.preferredTime?schedules.find(item=>item.id===d.preferredTime):null;
-  const text=[
-   'AK Löwen · Probetraining',
-   `${d.directionId} · ${d.groupId}`,
-   `Name: ${d.name}`,
-   `E-Mail: ${d.email||'—'}`,
-   `Telefon: ${d.phone||'—'}`,
-   `Telegram: ${d.telegram?`@${d.telegram}`:'—'}`,
-   `Zeit: ${schedule?`${schedule.weekdayIds.join(',')} ${schedule.startTime}–${schedule.endTime}`:'—'}`,
-   `Kommentar: ${d.comment||'—'}`,
-   `Alter: ${d.age}`,
-   `Sprache: ${d.locale}`,
-   `Datenschutz: ${d.consentVersion}`,
-   `Request: ${d.requestId}`,
-   `Eingang: ${new Date(clock()).toISOString()}`
-  ].join('\n');
+  const text=formatTrialMessage(d,new Date(clock()).toISOString());
   try{
    const response=await fetchImpl(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text}),signal:AbortSignal.timeout(timeoutMs)});
    let answer;try{answer=await response.json();}catch{throw new Error('Uncertain response');}

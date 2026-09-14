@@ -1,26 +1,27 @@
-# Project instructions
+# Project instructions — Release 2
 
-## Canonical identity
+## Start here
 
 - Canonical repository: `koss32/Ak-loewen`.
-- Repository/default documentation branch: `Ak-loewen`.
-- Website implementation branch: `codex/site-v1`.
-- Implementation baseline: commit `d640c22c5f1d98f81925b5e7668fdb0b65da76c4`.
-- The legal/customer identity is specifically **AK-LOEWEN gGmbH**. Do not rename it to another organisation or invent a different company.
-- The binding source of truth is `docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md` and its DOCX counterpart on branch `Ak-loewen`. Implementation work is made on `codex/site-v1`.
+- This approved version lives on **`release-2`**, with implementation in **`site/`**.
+- Read **`site/RELEASE-2.md`** before making changes. It records the owner's approved changes, source facts, delivery status and limitations.
+- Base: `codex/release-a` at `3e8cd4f7eeb272f6237d2fab49a9d99712fb836b`. Do not overwrite Release A.
+- Do not confuse Release 2 with historical v2 design concepts or switch back to `codex/site-v1` merely because an older document names it.
+- Standalone preview: `concepts/ak-loewen-valset-release-2.html`; build: `cd site && node build.js`.
 
-## Working rules
+## Identity and source of truth
 
-- The current website source is under `site/` on `codex/site-v1`. The standalone preview is `concepts/ak-loewen-valset-site-v1.html` on the same branch.
-- The old v2 concept is historical reference material only. Do not treat it as the current implementation or current instruction set.
-- Preserve original material under `references/` and `assets/`; do not silently overwrite historical source files.
-- The visual system uses the orange from the approved website concept:
-  - primary dark-theme AK Löwen orange: `#E85A22`
-  - light-theme orange: `#C4501E`
-  - lighter orange accent: `#FF7A3D`
-  - VALSET remains a separate navy/blue/yellow identity.
-- Do not replace the approved orange with `#FE4123`. Do not describe the brand colour only as “orange”; use the exact values above where a value is required.
-- Do not invent instructors, achievements, prices, schedules, contacts, legal text or testimonials. Keep unresolved items explicitly marked as pending.
-- Do not deploy production unless the user explicitly requests it. Validate locally with the project scripts and preserve accessibility, reduced-motion and mobile behaviour.
-- Before changing architecture, content, palette, animation or forms, check the source-of-truth document and the current implementation branch. Work in reviewable parts and report the exact commit and branch.
+- Legal/customer identity is **AK-LOEWEN gGmbH**. Never substitute another company.
+- The existing `docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md` on branch `Ak-loewen` remains the baseline specification, except for owner-approved changes explicitly recorded in `site/RELEASE-2.md`.
+- Preserve original `references/`, `assets/` and historical concepts. They are not permission to replace the current implementation.
+- Keep four locales DE/RU/UK/TR and the approved visual system: `#E85A22`, light-theme `#C4501E`, lighter accent `#FF7A3D`; VALSET remains navy/blue/yellow. Do not substitute `#FE4123`.
 
+## Content and behaviour
+
+- Do not invent instructors, awards, experience, prices, schedules, contacts, legal text or testimonials. The U20 championship is owner-supplied, not independently verified.
+- Keep the disclosure on the restored AI trainer illustration; Namig's approved real portrait remains separate.
+- VALSET now uses the same Telegram intake as AK. Instagram is optional, not a mandatory handoff. Do not restore the old Instagram-only flow.
+- Preserve validation, consent, request-id handling, uncertain-delivery behaviour, keyboard access, mobile composition and reduced-motion support.
+- Do not expose secrets, send test leads, enable production delivery or deploy without explicit authorization.
+- Existing verification documents/tests are historical. Tests and browser QA were not rerun for this revision at the owner's request. Never claim prior results validate new changes. If asked to verify or prepare deployment, update coverage for the new flow and report exactly what ran.
+- Work in reviewable parts and report exact branch/commit. An isolated branch is not itself a published GitHub Release or a production deployment.

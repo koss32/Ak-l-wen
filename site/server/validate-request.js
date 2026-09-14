@@ -1,4 +1,4 @@
-import {groups,locales,legal} from '../src/data.js';
+import {programs,groups,locales,legal} from '../src/data.js';
 
 export function validateRequest(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return {error:'invalid'};
@@ -10,7 +10,7 @@ export function validateRequest(raw){
  if(typeof telegram!=='string'||(telegram&&!/^@?[a-zA-Z][a-zA-Z0-9_]{4,31}$/.test(telegram)))return {error:'telegram'};
  if(!email&&!phone&&!telegram)return {error:'contact'};
  if(!Number.isInteger(age)||age<1||age>120)return {error:'age'};
- if(!['boxen','sambo-mma'].includes(directionId))return {error:'directionId'};
+ if(!programs.some(program=>program.id===directionId))return {error:'directionId'};
  const g=groups.find(g=>g.id===groupId&&g.programId===directionId);
  if(!g)return {error:'groupId'};
  if(age<g.minAge||(g.maxAge!==null&&age>g.maxAge))return {error:'age'};

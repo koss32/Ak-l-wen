@@ -3,7 +3,7 @@ export const localeNames = {de:'Deutsch',ru:'Русский',uk:'Українс�
 export const programs = [
  {id:'boxen',brandId:'ak',nameKey:'boxen',descriptionKey:'boxDesc',groupIds:['box-15'],monthlyPriceEUR:75,bookingChannel:'telegram-form'},
  {id:'sambo-mma',brandId:'ak',nameKey:'sambo',descriptionKey:'samboDesc',groupIds:['sambo-9-15','sambo-16'],monthlyPriceEUR:60,bookingChannel:'telegram-form'},
- {id:'valset',brandId:'valset',nameKey:'valset',descriptionKey:'valDesc',groupIds:['val-mama','val-junior','val-senior'],monthlyPriceEUR:50,bookingChannel:'instagram-link',bookingUrl:'https://www.instagram.com/VALSET_SOLINGEN/'}
+ {id:'valset',brandId:'valset',nameKey:'valset',descriptionKey:'valDesc',groupIds:['val-mama','val-junior','val-senior'],monthlyPriceEUR:50,bookingChannel:'telegram-form'}
 ];
 export const groups = [
  {id:'box-15',programId:'boxen',labelKey:'boxGroup',minAge:15,maxAge:null,scheduleIds:['box-week']},
@@ -24,8 +24,8 @@ export const schedules = [
  {id:'val-senior-week',weekdayIds:[1,3,5],startTime:'17:00',endTime:'18:00'}
 ].map(s=>({...s,timezone:'Europe/Berlin'}));
 export const trainers = [
- {id:'anar',programId:'boxen',name:'Anar Karimov',languages:['ru','tr','uk'],image:'coach.webp',biographyStatus:'pending',achievementsStatus:'pending'},
- {id:'namig',programId:'sambo-mma',name:'Namig Aliyev',languages:[],image:'namig',portraitStatus:'approved',instagram:'https://www.instagram.com/aliyev__11',biographyStatus:'pending',achievementsStatus:'pending'}
+ {id:'anar',programId:'sambo-mma',name:'Anar Karimov',languages:['ru','tr','uk'],image:'coach.webp',portraitStatus:'illustration',bioKey:'anarBio',approachKey:'anarApproach',achievementKey:'anarAchievement',biographyStatus:'owner-supplied',achievementsStatus:'owner-supplied'},
+ {id:'namig',programId:'boxen',name:'Namig Aliyev',languages:[],image:'namig',portraitStatus:'approved',instagram:'https://www.instagram.com/aliyev__11',bioKey:'namigBio',approachKey:'namigApproach',biographyStatus:'owner-supplied',achievementsStatus:'not-listed'}
 ];
 export const contacts = {
  email:'aklggmbh@gmail.com',telegram:'https://t.me/ak_loewenbot',instagram:'https://www.instagram.com/VALSET_SOLINGEN/',

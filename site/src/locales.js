@@ -79,4 +79,10 @@ Object.assign(ru,{chooseSchedule:'Подобрать удобное время',
 Object.assign(uk,{chooseSchedule:'Обрати зручний час',telegramBooking:'Записатися через Telegram-бота',bookingHelp:'Заповни форму пробного заняття на опублікованому сайті. Заявка надійде організатору через Telegram-бота. Прямі повідомлення боту поки не обробляються автоматично.'});
 Object.assign(tr,{chooseSchedule:'Uygun antrenman saatini bul',telegramBooking:'Telegram botundan deneme dersi iste',bookingHelp:'Yayınlanan sitedeki deneme dersi formunu doldur. Talebin Telegram botu aracılığıyla ekibe iletilir. Bota doğrudan gönderilen mesajlar henüz otomatik işlenmez.'});
 de.theme='Helles / dunkles Design wechseln';ru.theme='Переключить дневную / ночную тему';uk.theme='Перемкнути денну / нічну тему';tr.theme='Açık / koyu temayı değiştir';
+import {familyCopy} from './family-copy.js';
+for(const [locale,copy] of Object.entries(familyCopy))Object.assign({de,ru,uk,tr}[locale],copy);
+import {firstVisitCopy} from './first-visit-copy.js';
+for(const [locale,copy] of Object.entries(firstVisitCopy))Object.assign({de,ru,uk,tr}[locale],copy);
+import {bookingCopy} from './booking-copy.js';
+for(const [locale,copy] of Object.entries(bookingCopy))Object.assign({de,ru,uk,tr}[locale],copy);
 export const translations = {de,ru,uk,tr};

@@ -7,11 +7,12 @@
 
 <!-- AI-CURRENT-HANDOFF: keep this block short and current -->
 - **Current approved implementation:** `release-2`
-- **Current release-2 branch head:** `8d03f33282dc4dbba6b62d6123ef8b562cb9d5a2` — documentation/navigation only
+- **Current release-2 branch head:** `5b8662da8176c04f90e033b8da6f3174e0e30fba` — documentation/navigation update only
 - **Approved website code baseline:** `c8591e0aa1e197cdcc3eb850b174c6114467b595`
 - **Implementation root:** `site/` on `release-2`
 - **Status:** `APPROVED SOURCE / NOT PRODUCTION-ACTIVATED`
 - **Start next task with:** `index.md` → `release-2/AGENTS.md` → `release-2/site/AI-MAP.md` → only task-relevant files
+- **Pending owner-requested website change:** hero/start-screen **VALSET** card should scroll to the dedicated `#valset` section; the booking/trial action inside VALSET should scroll to `#probetraining` and preserve/preselect `data-direction="valset"`. This is documented in `release-2/AGENTS.md` and is **not yet implemented**.
 - **Telegram WIP branch:** `feature/telegram-bot-mvp` currently points to `c8591e0aa1e197cdcc3eb850b174c6114467b595`; it contains no committed bot implementation beyond Release 2 and is **not** an approved release
 - **Deprecated v1 marker:** `codex/site-v1` head `9884d17a7abf98e9122b61c9c42b17892946217e`; historical/recovery only
 - **Next-agent note:** Release 2 is authoritative. Do not spend context rediscovering v1/Release A/v2 unless the task explicitly asks for history/recovery/comparison.

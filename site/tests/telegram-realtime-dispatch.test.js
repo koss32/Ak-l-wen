@@ -54,6 +54,22 @@ test('webhook sends a slow callback ACK and its menu in one source-scoped dispat
  assert.ok(deliveries.some(item=>item.body.text==='due care'));
 });
 
+test('a valid button click deletes its obsolete bot interface card before rendering the replacement',async()=>{
+ const value=env(),store=createMemoryBotStore({clock:()=>0}),deliveries=[];
+ const transport=async(url,options)=>{
+  const method=url.split('/').at(-1),body=JSON.parse(options.body);deliveries.push({method,body});
+  return {status:200,json:async()=>({ok:true,result:['answerCallbackQuery','deleteMessage'].includes(method)?true:{message_id:deliveries.length}})};
+ };
+ const handler=createWebhookHandler({env:value,createRuntime:runtimeEnv=>directRuntime(runtimeEnv,store,transport,()=>0)});
+ const update={update_id:441,callback_query:{id:'query-441',from:{id:11},data:'cmd:menu',message:{message_id:73,chat:{id:11,type:'private'}}}};
+ const result=await invoke(handler,update,value);
+ assert.equal(result.statusCode,200);
+ assert.deepEqual(deliveries.map(item=>item.method),['answerCallbackQuery','deleteMessage','sendMessage']);
+ assert.deepEqual(deliveries[1].body,{chat_id:'11',message_id:73});
+ assert.match(deliveries[2].body.text,/Bitte wähle eine Aktion/);
+ assert.ok(Object.values((await store.inspect()).outbox).filter(item=>item.sourceUpdateId==='441').every(item=>item.state==='sent'));
+});
+
 test('direct reply drains preceding conversation output without waiting for cron, but not same-recipient reminders',async()=>{
  const value=env(),store=createMemoryBotStore({clock:()=>0}),deliveries=[];
  // Keep conversation order without depending on a worker to clear an older

@@ -40,7 +40,7 @@ const localHourForTest=at=>Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Eur
 
 test('Telegram classifications and secure secret comparison fail closed',()=>{
  assert.equal(secureEqual('',''),false);assert.equal(secureEqual('short','short'),false);const secret='x'.repeat(32);assert.equal(secureEqual(secret,secret),true);assert.equal(secureEqual(secret,'y'.repeat(32)),false);
- assert.deepEqual(classifyTelegramResponse({status:200,ok:true},{ok:true,result:{}}),{state:'uncertain'});assert.deepEqual(classifyTelegramResponse({status:429,ok:false},{ok:false,error_code:429,parameters:{retry_after:90}}),{state:'deferred',retryAfter:90});assert.deepEqual(classifyTelegramResponse({status:200,ok:true},{ok:true,result:true},'answerCallbackQuery'),{state:'sent',messageId:undefined});
+ assert.deepEqual(classifyTelegramResponse({status:200,ok:true},{ok:true,result:{}}),{state:'uncertain'});assert.deepEqual(classifyTelegramResponse({status:429,ok:false},{ok:false,error_code:429,parameters:{retry_after:90}}),{state:'deferred',retryAfter:90});assert.deepEqual(classifyTelegramResponse({status:200,ok:true},{ok:true,result:true},'answerCallbackQuery'),{state:'sent',messageId:undefined});assert.deepEqual(classifyTelegramResponse({status:200,ok:true},{ok:true,result:true},'deleteMessage'),{state:'sent',messageId:undefined});
 });
 
 test('worker begins delivery, uses a timeout signal, and never retries ambiguous response',async()=>{

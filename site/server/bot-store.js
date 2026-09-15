@@ -33,7 +33,8 @@ export function secureEqual(provided,expected,{minLength=32}={}){
  const a=Buffer.from(provided),b=Buffer.from(expected);return a.length===b.length&&timingSafeEqual(a,b);
 }
 export function classifyTelegramResponse(response,body,method='sendMessage'){
- if(response?.status===200&&body?.ok===true&&(method==='answerCallbackQuery'?body.result===true:Number.isInteger(body.result?.message_id)))return {state:'sent',messageId:body.result?.message_id};
+ const booleanResultMethods=new Set(['answerCallbackQuery','deleteMessage']);
+ if(response?.status===200&&body?.ok===true&&(booleanResultMethods.has(method)?body.result===true:Number.isInteger(body.result?.message_id)))return {state:'sent',messageId:body.result?.message_id};
  if(body?.ok===false&&body?.error_code===429&&Number.isFinite(Number(body.parameters?.retry_after)))return {state:'deferred',retryAfter:Math.max(1,Math.ceil(Number(body.parameters.retry_after)))};
  if(body?.ok===false&&Number.isInteger(body.error_code)&&body.error_code>=400&&body.error_code<500)return {state:'failed'};
  return {state:'uncertain'};

@@ -19,11 +19,11 @@ Telegram проверяется как часть единого Release 3.
 - Прочитаны пять текущих документов, код исследован только из `release-3`.
 - Через Telegram API подтверждён существующий `@ak_loewenbot`.
 - `getWebhookInfo`: URL совпадает с `https://ak-loewen-bot-preview.vercel.app/api/telegram-webhook/`, pending updates = 0, last error отсутствует. Это снимок доставки, НЕ подтверждение обработки реальной заявки.
-- Vercel Preview alias пока обслуживает не `release-3`. Release 2/Production, runtime secrets и Redis data не изменялись.
+- Vercel Preview alias обслуживает `release-3`. Release 2/Production, runtime secrets и Redis data не изменялись.
 - Проверено наличие и scope env без расшифровки значений. Bot Token и Redis aliases существуют; часть bot env ещё не применима к `release-3`, Privacy runtime configuration неполная. Детали и project identity — в `SETUP.md`.
 - Staff membership подключена в runtime/handler. Добавлен `site/tests/telegram-staff-flow.test.js`: fail-closed default, allowlist + group + membership, отказ при удалении сотрудника/ошибке API, перепроверка на этапах даты/commit, durable callback ACK без расходования действия при отказе, duplicate handling, runtime injection. Существующие успешные staff unit fixtures явно используют fake verifier.
 - Webhook function budget увеличен до 30 секунд: прежние 10 секунд могли быть короче bounded drain даже до добавления membership preflight.
-- `npm ci`, `npm test`, lint и build после этой доработки ещё НЕ запускались; scheduler, Redis runtime health и реальный E2E ещё НЕ проверены. Статус остаётся WIP / Preview.
+- После текущей доработки локально: `npm test` — 152 теста, 151 passed, 0 failed, 1 skipped; `npm run lint` и `npm run build` проходят. Единственный skip — Redis-интеграция без установленного `redis-server`; scheduler, Redis runtime health и реальный E2E ещё НЕ проверены. Статус остаётся WIP / Preview.
 
 ## Финальная проверка Release 3
 

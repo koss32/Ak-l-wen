@@ -2,6 +2,7 @@ import {Redis} from '@upstash/redis';
 import {createMemoryBotStore,createUpstashBotStore} from './bot-store.js';
 import {createTelegramBot,drainTelegramOutbox} from './telegram-bot.js';
 import {assessBotConfig,isValidTelegramTimeout} from './bot-config.js';
+import {botCopy} from './bot-copy.js';
 import {legal} from '../src/data.js';
 import {createStaffMembershipVerifier} from './telegram-staff.js';
 
@@ -11,6 +12,35 @@ const positiveInteger=(value,name,{min=1,max=1000}={})=>{
  if(!Number.isInteger(number)||number<min||number>max)fail(name);
  return number;
 };
+
+const cancelPrompts=new Set(Object.values(botCopy).map(copy=>copy.cancelAsk).filter(Boolean));
+const russianReminderOn=`🔔 ${botCopy.ru.remindersToggleOn}`;
+const russianReminderOnLabel='🔔 Напомнить за 2 часа до тренировки';
+
+function telegramUiStore(store){
+ return {
+  transactUpdate(updateId,reducer){
+   return store.transactUpdate(updateId,tx=>{
+    const enqueue=tx.enqueue.bind(tx),view=Object.create(tx);
+    view.enqueue=(recipient,text,kind='message',notBefore=tx.now,meta={},method='sendMessage',payload)=>{
+     let nextText=text,nextNotBefore=notBefore,nextMeta=meta;
+     if(kind==='interface-cleanup')nextNotBefore=tx.now+2000;
+     if(kind==='message'&&typeof nextText==='string'){
+      const prompt=[...cancelPrompts].find(value=>nextText===value||nextText.startsWith(`${value}\n`));
+      if(prompt)nextText=prompt;
+     }
+     if(meta?.reply_markup?.inline_keyboard){
+      const cloned=structuredClone(meta);
+      for(const row of cloned.reply_markup.inline_keyboard)for(const button of row)if(button.text===russianReminderOn)button.text=russianReminderOnLabel;
+      nextMeta=cloned;
+     }
+     return enqueue(recipient,nextText,kind,nextNotBefore,nextMeta,method,payload);
+    };
+    return reducer(view);
+   });
+  }
+ };
+}
 
 /**
  * Construct a durable bot runtime. Memory storage is only injectable for tests;
@@ -40,7 +70,7 @@ export function createBotRuntime(env=process.env,{store,fetchImpl=fetch}={}){
   fetchImpl,
   timeoutMs:Math.min(2000,checked.timeoutMs)
  });
- const bot=createTelegramBot({store:activeStore,config,verifyStaffMembership});
+ const bot=createTelegramBot({store:telegramUiStore(activeStore),config,verifyStaffMembership});
  return {
   bot,
   store:activeStore,

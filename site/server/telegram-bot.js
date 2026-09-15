@@ -36,7 +36,7 @@ function addButtons(tx,s,choices){return keyboard(choices.map(row=>row.map(choic
 function send(tx,recipient,text,replyMarkup,kind='message',meta={}){return tx.enqueue(recipient,outputText(text),kind,tx.now,{...meta,...(replyMarkup?{reply_markup:replyMarkup}:{})});}
 // A callback can only originate from a message that Telegram gave the bot. Delete
 // that obsolete interface card after a valid click; never delete user input.
-function deleteInteractiveMessage(tx,message){const chatId=message?.chat?.id,messageId=message?.message_id;if((typeof chatId!=='string'&&typeof chatId!=='number')||!Number.isSafeInteger(messageId)||messageId<1)return;tx.enqueue(chatId,'','interface-cleanup',tx.now,{},'deleteMessage',{chat_id:String(chatId),message_id:messageId});}
+function deleteInteractiveMessage(tx,message){const chatId=message?.chat?.id,messageId=message?.message_id;if((typeof chatId!=='string'&&typeof chatId!=='number')||!Number.isSafeInteger(messageId)||messageId<1)return;tx.enqueue(chatId,'','interface-cleanup',tx.now+2500,{},'deleteMessage',{chat_id:String(chatId),message_id:messageId});}
 function putStage(tx,chatId,s,stage,extra={}){return tx.putSession(chatId,{...s,...extra,stage});}
 function session(tx,chatId,user){return tx.getSession(chatId)||{locale:lang(tx.getClient(user?.id||chatId)?.locale),stage:'idle'};}
 function clientLocale(tx,user,chatId){return lang(session(tx,chatId,user).locale||tx.getClient(user.id)?.locale);}

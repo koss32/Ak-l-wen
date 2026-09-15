@@ -10,7 +10,7 @@ export const BOT_CALLBACK_TTL_MS=15*1000;
 // may recover it. This prevents a concurrent worker invocation from stealing a
 // current Telegram click while retaining a bounded recovery path.
 export const BOT_INTERACTIVE_DISPATCH_GRACE_MS=30*1000;
-const BACKGROUND_KINDS=new Set(['reminder','checkin']);
+const BACKGROUND_KINDS=new Set(['reminder','checkin','interface-cleanup']);
 const clone=value=>value===undefined?undefined:structuredClone(value);
 const freshState=()=>({schema:2,sessions:{},requests:{},requestSequence:0,clients:{},updates:{},actions:{},outbox:{},recipientSequence:{},recipientBlockedUntil:{}});
 const id=()=>randomUUID().replaceAll('-','');

@@ -7,7 +7,7 @@
 
 <!-- AI-CURRENT-HANDOFF: keep this block short and current -->
 - **Current approved implementation:** `release-2`
-- **Current release-2 branch head:** `eb1967ea1aee8575f7b85a4f3c982d61d2c7617d` — documentation/legal/redesign-routing updates only
+- **Current release-2 branch head:** `dfbb7bb4b87907bc19084d8a3e4bfb7cdaf0d0a9` — documentation/legal/redesign-routing updates only
 - **Approved website code baseline:** `c8591e0aa1e197cdcc3eb850b174c6114467b595`
 - **Implementation root:** `site/` on `release-2`
 - **Status:** `APPROVED SOURCE / NOT PRODUCTION-ACTIVATED`

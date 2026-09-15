@@ -20,7 +20,7 @@ test('opaque revisions avoid ABA and delivery has lease + begin fence with crash
 
 test('future reminder does not block immediate reply; retry_after blocks the recipient',async()=>{
  let now=0;const store=createMemoryBotStore({clock:()=>now});await store.enqueue('1','later','reminder',1000);const immediate=await store.enqueue('1','now');assert.equal((await store.leaseNext('w')).id,immediate.id);
- const active=await store.beginDelivery(immediate.id,(await store.inspect()).outbox[immediate.id].lease.fence);await store.finishDelivery(active.id,active.lease.fence,{state:'deferred',retryAfter:30});await store.enqueue('1','another');assert.equal(await store.leaseNext('w'),undefined);now=30000;assert.ok(await store.leaseNext('w'));
+ const active=await store.beginDelivery(immediate.id,(await store.inspect()).outbox[immediate.id].lease.fence);await store.finishDelivery(active.id,active.lease.fence,classifyTelegramResponse({status:429,ok:false},{ok:false,error_code:429,parameters:{retry_after:30}}));await store.enqueue('1','another');assert.equal(await store.leaseNext('w'),undefined);now=30000;assert.ok(await store.leaseNext('w'));
 });
 
 test('final beginDelivery guard suppresses stale or opted-out reminders and DST quiet time stays before appointment',async()=>{
@@ -30,7 +30,7 @@ const localHourForTest=at=>Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Eur
 
 test('Telegram classifications and secure secret comparison fail closed',()=>{
  assert.equal(secureEqual('',''),false);assert.equal(secureEqual('short','short'),false);const secret='x'.repeat(32);assert.equal(secureEqual(secret,secret),true);assert.equal(secureEqual(secret,'y'.repeat(32)),false);
- assert.deepEqual(classifyTelegramResponse({ok:true},{ok:true,result:{}}),{state:'uncertain'});assert.deepEqual(classifyTelegramResponse({ok:false},{ok:false,error_code:429,parameters:{retry_after:90}}),{state:'deferred',retryAfter:90});assert.deepEqual(classifyTelegramResponse({ok:true},{ok:true,result:true},'answerCallbackQuery'),{state:'sent',messageId:undefined});
+ assert.deepEqual(classifyTelegramResponse({status:200,ok:true},{ok:true,result:{}}),{state:'uncertain'});assert.deepEqual(classifyTelegramResponse({status:429,ok:false},{ok:false,error_code:429,parameters:{retry_after:90}}),{state:'deferred',retryAfter:90});assert.deepEqual(classifyTelegramResponse({status:200,ok:true},{ok:true,result:true},'answerCallbackQuery'),{state:'sent',messageId:undefined});
 });
 
 test('worker begins delivery, uses a timeout signal, and never retries ambiguous response',async()=>{

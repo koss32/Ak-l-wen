@@ -3,16 +3,32 @@ import {createHash,randomUUID,timingSafeEqual} from 'node:crypto';
 export const BOT_RETENTION_MS=30*24*60*60*1000;
 export const BOT_SESSION_MS=30*60*1000;
 export const BOT_MAX_STATE_BYTES=512*1024;
+// Requests expire after 30 days, so appointments must leave a full day for care work.
+export const BOT_MAX_APPOINTMENT_DELAY_MS=BOT_RETENTION_MS-24*60*60*1000;
+export const BOT_CALLBACK_TTL_MS=15*1000;
 const clone=value=>value===undefined?undefined:structuredClone(value);
 const freshState=()=>({schema:2,sessions:{},requests:{},clients:{},updates:{},actions:{},outbox:{},recipientSequence:{},recipientBlockedUntil:{}});
 const id=()=>randomUUID().replaceAll('-','');
+const berlinHour=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',hourCycle:'h23'});
+const localHour=at=>Number(berlinHour.format(new Date(at)));
+const berlinQuiet=at=>{const hour=localHour(at);return hour>=21||hour<8;};
+
+/** Return the first Berlin 08:00-or-later instant before appointment, or null. */
+export function nextAllowedReminderTime(candidate,appointment){
+ if(!Number.isFinite(candidate)||!Number.isFinite(appointment)||candidate>=appointment)return null;
+ if(!berlinQuiet(candidate))return candidate;
+ // Work from an exact minute so quiet delivery resumes at 08:00, not at e.g. 08:00:37.
+ let at=Math.floor(candidate/60000)*60000;
+ for(let minutes=0;minutes<=1560&&at<appointment;minutes++,at+=60000)if(!berlinQuiet(at))return at;
+ return null;
+}
 
 export function secureEqual(provided,expected,{minLength=32}={}){
  if(typeof provided!=='string'||typeof expected!=='string'||expected.length<minLength||provided.length!==expected.length)return false;
  const a=Buffer.from(provided),b=Buffer.from(expected);return a.length===b.length&&timingSafeEqual(a,b);
 }
 export function classifyTelegramResponse(response,body,method='sendMessage'){
- if(response?.ok&&body?.ok===true&&(method==='answerCallbackQuery'?body.result===true:Number.isInteger(body.result?.message_id)))return {state:'sent',messageId:body.result?.message_id};
+ if(response?.status===200&&body?.ok===true&&(method==='answerCallbackQuery'?body.result===true:Number.isInteger(body.result?.message_id)))return {state:'sent',messageId:body.result?.message_id};
  if(body?.ok===false&&body?.error_code===429&&Number.isFinite(Number(body.parameters?.retry_after)))return {state:'deferred',retryAfter:Math.max(1,Math.ceil(Number(body.parameters.retry_after)))};
  if(body?.ok===false&&Number.isInteger(body.error_code)&&body.error_code>=400&&body.error_code<500)return {state:'failed'};
  return {state:'uncertain'};
@@ -27,19 +43,23 @@ function pruneState(state,now){
   else if(v.state==='sending'&&v.lease?.until<=now){v.state='uncertain';v.finishedAt=now;v.lease=null;}
  }
  for(const [recipient,until] of Object.entries(state.recipientBlockedUntil||{}))if(until<=now)delete state.recipientBlockedUntil[recipient];
+ // Sequence numbers are ordering metadata, not an unbounded per-recipient history.
+ const referenced=new Set([...Object.values(state.outbox).map(item=>item.recipient),...Object.keys(state.recipientBlockedUntil)]);
+ for(const recipient of Object.keys(state.recipientSequence||{}))if(!referenced.has(recipient))delete state.recipientSequence[recipient];
 }
 function txFacade(state,{now,updateId,nonce}){
  let counter=0;const token=(length=32)=>createHash('sha256').update(`${nonce}:${counter++}`).digest('hex').slice(0,length);
  const putSession=(key,value)=>{const revision=token(16);state.sessions[String(key)]={value:{...clone(value),revision},expiresAt:now+BOT_SESSION_MS};return clone(state.sessions[String(key)].value);};
  const enqueue=(recipient,text,kind='message',notBefore=now,meta={},method='sendMessage',payload)=>{
   const r=String(recipient),sequence=(state.recipientSequence[r]||0)+1;state.recipientSequence[r]=sequence;
-  const item={id:token(32),recipient:r,text:String(text||''),kind,meta:clone(meta),method,payload:payload?clone(payload):undefined,sequence,state:'queued',notBefore:Number(notBefore)||now,attempts:0,lease:null,createdAt:now,expiresAt:now+BOT_RETENTION_MS};state.outbox[item.id]=item;return clone(item);
+  const item={id:token(32),recipient:r,text:String(text||''),kind,meta:clone(meta),method,payload:payload?clone(payload):undefined,sequence,state:'queued',notBefore:Number(notBefore)||now,attempts:0,lease:null,createdAt:now,expiresAt:now+(kind==='callback-answer'?BOT_CALLBACK_TTL_MS:BOT_RETENTION_MS)};state.outbox[item.id]=item;return clone(item);
  };
- const request=(requestId)=>{const value=state.requests[String(requestId)];return value&&value.expiresAt>now?clone(value):undefined;};
+ const request=requestId=>{const value=state.requests[String(requestId)];return value&&value.expiresAt>now?clone(value):undefined;};
  return {
   now,updateId,newToken:(length=16)=>token(length),newUuid:()=>{const x=token(32);return `${x.slice(0,8)}-${x.slice(8,12)}-4${x.slice(13,16)}-a${x.slice(17,20)}-${x.slice(20,32)}`;},
   getSession:key=>clone(state.sessions[String(key)]?.value),putSession,clearSession:key=>delete state.sessions[String(key)],
-  getClient:userId=>clone(state.clients[String(userId)]),putClient:(userId,value)=>{state.clients[String(userId)]={...clone(value),expiresAt:now+BOT_RETENTION_MS};},
+  getClient:userId=>clone(state.clients[String(userId)]),putClient:(userId,value)=>{const existing=state.clients[String(userId)]||{};state.clients[String(userId)]={...clone(existing),...clone(value),expiresAt:now+BOT_RETENTION_MS};},
+  listClientRequests(userId){const clientUserId=String(userId);return Object.values(state.requests).filter(record=>record.expiresAt>now&&String(record.clientUserId)===clientUserId).sort((a,b)=>b.createdAt-a.createdAt||b.updatedAt-a.updatedAt||(String(a.id)<String(b.id)?1:String(a.id)>String(b.id)?-1:0)).map(clone);},
   getRequest:request,
   createRequest(record){if(state.requests[record.id])throw new Error('request_exists');const saved={...clone(record),revision:token(16),appointmentRevision:token(16),preferenceRevision:token(16),createdAt:now,updatedAt:now,expiresAt:now+BOT_RETENTION_MS};state.requests[saved.id]=saved;return clone(saved);},
   updateRequest(requestId,expectedRevision,change){return this.patchRequest(requestId,{revision:expectedRevision},change);},
@@ -55,7 +75,10 @@ function txFacade(state,{now,updateId,nonce}){
   raw:state
  };
 }
-function normalized(raw){if(!raw)return freshState();if(typeof raw==='string')return JSON.parse(raw);return clone(raw);}
+function normalized(raw){
+ if(!raw)return freshState();const parsed=typeof raw==='string'?JSON.parse(raw):clone(raw),base=freshState();
+ return {...base,...parsed,sessions:parsed.sessions||{},requests:parsed.requests||{},clients:parsed.clients||{},updates:parsed.updates||{},actions:parsed.actions||{},outbox:parsed.outbox||{},recipientSequence:parsed.recipientSequence||{},recipientBlockedUntil:parsed.recipientBlockedUntil||{}};
+}
 function createStore({readSnapshot,commitSnapshot,clock,maxBytes=BOT_MAX_STATE_BYTES,kind}){
  const transact=async(updateId,reducer,{retries=64}={})=>{
   const nonce=id();
@@ -77,8 +100,8 @@ function createStore({readSnapshot,commitSnapshot,clock,maxBytes=BOT_MAX_STATE_B
   createBooking:(record,staffRecipient,staffText)=>mutate(tx=>{const saved=tx.createRequest(record);if(staffRecipient&&staffText){const card=typeof staffText==='string'?{text:staffText}:staffText;tx.enqueue(staffRecipient,card.text,'staff-card',clock(),card.meta||{});}return saved;}),
   transition:(key,revision,change,notifications=[])=>mutate(tx=>{const result=tx.updateRequest(key,revision,change);if(result.ok)for(const n of notifications)tx.enqueue(n.recipient,n.text,n.kind||'message',n.notBefore||clock(),{requestId:key,...n.meta});return result;}),
   enqueue:(...args)=>mutate(tx=>tx.enqueue(...args)),cancelCare:key=>mutate(tx=>tx.cancelCare(key)),
-  leaseNext:(workerId,leaseMs=30000)=>mutate(tx=>{const state=tx.raw,now=tx.now,candidates=Object.values(state.outbox).filter(x=>x.state==='queued'&&x.notBefore<=now&&(state.recipientBlockedUntil[x.recipient]||0)<=now).sort((a,b)=>a.notBefore-b.notBefore||a.sequence-b.sequence||a.createdAt-b.createdAt);for(const item of candidates){const olderDue=Object.values(state.outbox).some(other=>other.recipient===item.recipient&&other.id!==item.id&&other.sequence<item.sequence&&other.state==='queued'&&other.notBefore<=now);if(olderDue)continue;item.state='leased';item.attempts++;item.lease={workerId:String(workerId),fence:tx.newToken(20),until:now+leaseMs};return clone(item);}return undefined;}),
-  beginDelivery:(itemId,fence,leaseMs=30000)=>mutate(tx=>{const item=tx.raw.outbox[String(itemId)];if(!item||item.state!=='leased'||item.lease?.fence!==fence||item.lease.until<=tx.now)return undefined;if(item.kind==='reminder'){const req=tx.getRequest(item.meta?.requestId);if(!req||req.status!=='confirmed'||!req.reminders?.enabled||req.clientChatId!==item.recipient||req.appointmentRevision!==item.meta?.appointmentRevision||req.appointment!==item.meta?.appointment||item.notBefore>=req.appointment){item.state='cancelled';item.lease=null;return undefined;}}item.state='sending';item.lease.until=tx.now+leaseMs;return clone(item);}),
+  leaseNext:(workerId,leaseMs=30000)=>mutate(tx=>{const state=tx.raw,now=tx.now,candidates=Object.values(state.outbox).filter(x=>x.state==='queued'&&x.notBefore<=now&&(state.recipientBlockedUntil[x.recipient]||0)<=now).sort((a,b)=>(a.kind==='callback-answer'?0:1)-(b.kind==='callback-answer'?0:1)||a.notBefore-b.notBefore||a.sequence-b.sequence||a.createdAt-b.createdAt);for(const item of candidates){const active=Object.values(state.outbox).some(other=>other.recipient===item.recipient&&other.id!==item.id&&['leased','sending'].includes(other.state));const olderDue=Object.values(state.outbox).some(other=>other.recipient===item.recipient&&other.id!==item.id&&other.sequence<item.sequence&&other.state==='queued'&&other.notBefore<=now);if(active||olderDue)continue;item.state='leased';item.attempts++;item.lease={workerId:String(workerId),fence:tx.newToken(20),until:now+leaseMs};return clone(item);}return undefined;}),
+  beginDelivery:(itemId,fence,leaseMs=30000)=>mutate(tx=>{const item=tx.raw.outbox[String(itemId)];if(!item||item.state!=='leased'||item.lease?.fence!==fence||item.lease.until<=tx.now)return undefined;const blockedUntil=tx.raw.recipientBlockedUntil[item.recipient]||0;if(blockedUntil>tx.now){item.state='queued';item.notBefore=Math.max(item.notBefore,blockedUntil);item.lease=null;return undefined;}if(item.kind==='reminder'){const req=tx.getRequest(item.meta?.requestId),appointment=req?.appointment;if(!req||req.status!=='confirmed'||!req.reminders?.enabled||req.clientChatId!==item.recipient||req.appointmentRevision!==item.meta?.appointmentRevision||appointment!==item.meta?.appointment||!Number.isFinite(appointment)||tx.now>=appointment){item.state='cancelled';item.lease=null;return undefined;}const allowedAt=nextAllowedReminderTime(tx.now,appointment);if(allowedAt===null){item.state='cancelled';item.lease=null;return undefined;}if(allowedAt>tx.now){item.state='queued';item.notBefore=allowedAt;item.lease=null;return undefined;}}item.state='sending';item.lease.until=tx.now+leaseMs;return clone(item);}),
   finishDelivery:(itemId,fence,result)=>mutate(tx=>{const item=tx.raw.outbox[String(itemId)];if(!item||item.state!=='sending'||item.lease?.fence!==fence)return false;if(result.state==='deferred'){item.state='queued';item.notBefore=tx.now+result.retryAfter*1000;tx.raw.recipientBlockedUntil[item.recipient]=item.notBefore;item.lease=null;return true;}item.state=result.state;item.messageId=result.messageId;item.finishedAt=tx.now;item.lease=null;return true;}),
   inspect:async()=>normalized((await readSnapshot()).state)
  };

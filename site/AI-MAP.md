@@ -308,12 +308,25 @@ External authenticated scheduler -> api/telegram-worker.js
   adapter; 512 KiB capacity guard, 30-minute sessions/actions, 30-day domain/outbox/
   dedupe retention, Lua CAS with opaque generation, runnable-recipient ordering,
   leased/sending fencing, final reminder guard and conservative result classification.
-- `server/telegram-bot.js` — RU/DE private intake, data-driven groups/schedules,
+- `server/telegram-bot.js` — DE/RU/UK/TR private intake, data-driven groups/schedules,
   adult/minor/guardian/privacy/preview validation, durable client lookup, staff card
   refresh/confirm/reschedule/cancel/reply preview, reminders and outbox drainer.
-- `server/bot-runtime.js` — no volatile production fallback. Source legal `pending`
-  permits info-only operation while booking remains gated by source + environment +
+- `server/bot-runtime.js` — no volatile production fallback. Pending publication
+  configuration permits info-only operation while booking remains gated by source + environment +
   exact consent version + HTTPS privacy URL.
+- `server/bot-config.js` — redacted runtime assessment, strict numeric staff IDs,
+  independent webhook/worker secrets and privacy/worker readiness.
+- `server/bot-copy.js` — DE/RU/UK/TR bot dialogs, FAQ question labels and German
+  default (`DEFAULT_LOCALE`). Only saved/explicit choices change the initial
+  German language; Telegram's language hint no longer selects the bot locale.
+- `server/telegram-bot.js` `menu` / `languageMenu` / `faq` — button navigation,
+  separate language selection and draft-preserving FAQ. Answers reuse
+  `src/first-visit-copy.js` and `contacts` from `src/data.js`; no AI/free-chat service.
+- `public/telegram-privacy/index.html` — standalone approved-for-publication German
+  notice with the supplied Russian translation; `build.js` copies it to
+  `dist/telegram-privacy/index.html`. `server.js` serves `/telegram-privacy/` locally.
+  Approved content: `../privacy/telegram-privacy-approved.md`. Activation/handoff:
+  `../START-HERE.md`. Owner approval does not mark the notice publicly deployed.
 - `api/telegram-webhook.js` / `api/telegram-worker.js` — protected Vercel boundaries.
   No webhook registration, deployment or scheduler is installed by the repository.
 - `api/telegram-link.js` — intentional 503. The ownership-proofed web bridge is
@@ -321,7 +334,11 @@ External authenticated scheduler -> api/telegram-worker.js
 - `tests/bot-*.test.js`, `tests/telegram-bot.test.js`, `tests/telegram-api.test.js` —
   complete flow, concurrency/fencing/security tests, including real local Redis Lua.
 - `BOT-SETUP.md` / `BOT-VERIFICATION.md` — configuration, legal gate, retention,
-  scaling limit, uncertainty runbook and exact current test evidence.
+  scaling limit, uncertainty runbook and historical test evidence. Current
+  continuation and verification boundary: `../START-HERE.md`.
 
-The existing `/api/trial-requests` path is unchanged. Current source legal status is
-`pending`, so native booking remains unavailable until owner/legal publication work.
+The existing `/api/trial-requests` path is unchanged. The Telegram notice was
+approved and published on 2026-09-15. Local source uses `published` and consent
+version `telegram-2026-09-15-v1`; the notice-stage deployment/environment still
+keep booking pending until the minute scheduler and final runtime activation.
+Deployment evidence: `../operations/telegram-preview-state.json`.

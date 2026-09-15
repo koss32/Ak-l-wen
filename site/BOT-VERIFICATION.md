@@ -1,5 +1,12 @@
 # Bot verification — 2026-09-14
 
+> Historical verification only. The 2026-09-15 local continuation restored the
+> owner's newer Telegram handoff and prepared the owner-approved privacy notice.
+> No application tests, lint, browser or live Telegram checks have run on that revision.
+> Vercel successfully built the notice-stage Preview; HTTPS publication was
+> confirmed separately. The local activation candidate remains unbuilt/untested.
+> Follow `../START-HERE.md`; the owner requires tests only after complete setup.
+
 Run from `site/` (a temporary filesystem copy may be needed because this mounted workspace refused to create `node_modules`):
 
 ```sh

@@ -1,10 +1,35 @@
 # Telegram-native bot — secure setup (implemented, off by default)
 
-The native RU/DE bot and durable Redis aggregate store are implemented. Nothing in this repository registers a webhook, creates a schedule, deploys, or calls Telegram during setup. Every feature flag in `.env.example` is `false`.
+The native DE/RU/UK/TR bot and durable Redis aggregate store are implemented. Nothing in this repository registers a webhook, creates a schedule, deploys, or calls Telegram during setup. Every feature flag in `.env.example` is `false`.
+
+New users start in German, independent of Telegram's language setting. Explicit
+language selection stays in the separate `🌐 Sprache` submenu and is remembered.
+The FAQ is a button-based menu backed by approved first-visit copy and contact
+data; it is available before booking activation and does not replace/reset a
+draft. There is no AI conversation or new paid service.
+
+The owner now wants staff handling in a group with trainers. The exact group and
+authorized trainer IDs are pending confirmation; existing staff permissions must
+not be widened merely because someone joins a group.
+
+Current continuation: `../START-HERE.md`. The owner approved the supplied Telegram
+privacy content and controller details on 2026-09-15. The publication-ready German
+notice and supplied Russian translation are in `../privacy/telegram-privacy-approved.md`
+and `public/telegram-privacy/index.html`, version `telegram-2026-09-15-v1`.
+The notice is now published at
+`https://ak-loewen-bot-preview.vercel.app/telegram-privacy/`. Its served contents
+were matched to the approved document. Local source is prepared for that published
+version; Preview runtime activation remains pending until the minute scheduler is
+connected. See `../operations/telegram-preview-state.json` for deployment evidence.
 
 ## Current legal gate and info-only operation
 
-`src/data.js` remains authoritative and currently has `legal.publicationStatus: 'pending'`. With `BOT_ENABLED=true`, `/start`, `/help`, `/location`, and language selection can operate, but `/book` fails closed **before personal data collection**. Booking becomes available only when all of these agree after legal review:
+`src/data.js` remains authoritative. Its local publication status/version now
+describe the published Telegram notice, but the deployed notice-stage revision
+and Preview environment still keep booking pending. With `BOT_ENABLED=true`,
+`/start`, `/help`, `/location`, and language selection can operate, but `/book`
+fails closed **before personal data collection**. Booking becomes available only
+when all of these agree after publication and operational setup:
 
 1. source `legal.publicationStatus === 'published'`;
 2. `PRIVACY_PUBLICATION_STATUS=published`;
@@ -42,10 +67,10 @@ The disabled `/api/telegram-link` endpoint intentionally returns 503. The web-to
 
 ## Implemented behavior
 
-- Private client flow: `/start`, `/book`, `/status`, `/help`, `/location`, `/language`, `/cancel`, `/reminders`, `/stop`.
+- Private client flow: `/start`, `/book`, `/status`, `/help`, `/faq`, `/location`, `/language`, `/cancel`, `/reminders`, `/stop`; primary navigation is through buttons.
 - Adult is 18+; a minor is under 18 and requires an explicit parent/authorized-representative/legal-guardian role. Names are 2–80 characters. Programs, groups, ages and factual schedule times come from `src/data.js`/approved locale labels. A versioned privacy consent precedes contact data, and a normalized preview plus explicit submit precedes request creation.
 - Requests remain pending until an authorized staff member confirms a real future ISO-8601 timestamp with offset. Staff can refresh via `/staff <request-id>`, confirm/reschedule, cancel, or compose a request-specific reply with preview. Staff cards bind immutable user allowlist + staff chat + current appointment revision.
-- Reminder opt-in defaults off. Confirmed dated appointments can queue 24 h/2 h reminders. Berlin quiet hours 21:00–08:00 are respected; past, duplicate, pending, cancelled, superseded and opted-out reminders are suppressed by an atomic final pre-send guard.
+- Reminder opt-in defaults off. Submission offers explicit choices with or without one reminder two hours before a staff-confirmed future appointment. Berlin quiet hours 21:00–08:00 are respected; past, duplicate, pending, cancelled, superseded and opted-out reminders are suppressed by an atomic final pre-send guard.
 - All state changes caused by one Telegram update—including update dedupe, session/request/client changes, action tokens and outbox writes—commit as one Redis Lua CAS transaction. The reducer has no network side effects and uses one transaction nonce so retries produce the same IDs/tokens.
 
 ## Persistence, retention and delivery semantics

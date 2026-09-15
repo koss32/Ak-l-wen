@@ -55,15 +55,16 @@ test('webhook sends a slow callback ACK and its menu in one source-scoped dispat
 });
 
 test('a valid button click renders the replacement and schedules delayed interface cleanup',async()=>{
- const value=env();let now=0;const store=createMemoryBotStore({clock:()=>now}),deliveries=[];
+ const value=env();let now=0,cleanupPromise;const store=createMemoryBotStore({clock:()=>now}),deliveries=[];
  const transport=async(url,options)=>{
   const method=url.split('/').at(-1),body=JSON.parse(options.body);deliveries.push({method,body});
   return {status:200,json:async()=>({ok:true,result:['answerCallbackQuery','deleteMessage'].includes(method)?true:{message_id:deliveries.length}})};
  };
- const handler=createWebhookHandler({env:value,sleep:async()=>{now=2500;},createRuntime:runtimeEnv=>directRuntime(runtimeEnv,store,transport,()=>now)});
+ const handler=createWebhookHandler({env:value,sleep:async()=>{now=2500;},waitUntilTask:task=>{cleanupPromise=task;},createRuntime:runtimeEnv=>directRuntime(runtimeEnv,store,transport,()=>now)});
  const update={update_id:441,callback_query:{id:'query-441',from:{id:11},data:'cmd:menu',message:{message_id:73,chat:{id:11,type:'private'}}}};
  const result=await invoke(handler,update,value);
  assert.equal(result.statusCode,200);
+ await cleanupPromise;
  assert.deepEqual(deliveries.map(item=>item.method),['answerCallbackQuery','sendMessage','deleteMessage']);
  assert.match(deliveries[1].body.text,/Bitte wähle eine Aktion/);
  const cleanup=Object.values((await store.inspect()).outbox).find(item=>item.method==='deleteMessage');

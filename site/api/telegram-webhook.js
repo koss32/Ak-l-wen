@@ -1,6 +1,7 @@
 import {secureEqual} from '../server/bot-store.js';
 import {createBotRuntime} from '../server/bot-runtime.js';
 import {assessBotConfig,validPublicOrigin} from '../server/bot-config.js';
+import {waitUntil} from '@vercel/functions';
 export const config={api:{bodyParser:false}};
 const LIMIT=128*1024;
 const INTERFACE_CLEANUP_DELAY_MS=2500;
@@ -41,7 +42,7 @@ export function telegramUpdateKind(update){
 }
 export function validTelegramUpdate(update){return telegramUpdateKind(update)!=='invalid';}
 
-export function createWebhookHandler({env=process.env,createRuntime=createBotRuntime,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
+export function createWebhookHandler({env=process.env,createRuntime=createBotRuntime,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),waitUntilTask=waitUntil}={}){
  return async function handler(req,res){
   if(req.method!=='POST')return json(res,405,{ok:false,code:'method'});
   const checked=assessBotConfig(env,{requireEnabled:true,requireWebhook:true,requireRedis:false});
@@ -66,10 +67,11 @@ export function createWebhookHandler({env=process.env,createRuntime=createBotRun
     await runtime.drain({limit:10,maxDurationMs:WEBHOOK_DRAIN_BUDGET_MS,sourceUpdateId:update.update_id});
     if(await runtime.hasPendingImmediateForUpdate(update.update_id))return json(res,503,{ok:false,code:'retry'});
     // Cleanup is deliberately delayed so Telegram users can see the transition.
-    // Run it inside this invocation rather than waiting for the minute worker;
-    // a failed cleanup remains recoverable by that worker.
+    // Register it after the response so the callback itself stays fast; a failed
+    // cleanup remains recoverable by the regular worker.
     if(typeof runtime.hasPendingCleanupForUpdate==='function'&&await runtime.hasPendingCleanupForUpdate(update.update_id)){
-     try{await sleep(INTERFACE_CLEANUP_DELAY_MS);await runtime.drain({limit:10,maxDurationMs:5000,sourceUpdateId:update.update_id,includeBackground:true});}catch{/* keep the cleanup queued for worker recovery */}
+     const cleanup=async()=>{try{await sleep(INTERFACE_CLEANUP_DELAY_MS);await runtime.drain({limit:10,maxDurationMs:29000,sourceUpdateId:update.update_id,includeBackground:true});}catch{/* keep the cleanup queued for worker recovery */}};
+     try{waitUntilTask(cleanup());}catch{/* Vercel waitUntil is unavailable in local adapters; worker recovery remains available. */}
     }
    }catch{return json(res,503,{ok:false,code:'retry'});}
    return json(res,200,{ok:true,dropped:Boolean(result?.dropped)});

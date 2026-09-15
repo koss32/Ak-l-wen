@@ -47,12 +47,21 @@ export function createBotRuntime(env=process.env,{store,fetchImpl=fetch}={}){
   // createTelegramBot is the single booking-readiness authority.
   infoOnly:bot.infoOnly,
   drain(options={}){
-   if(!checked.workerReady)fail('BOT_WORKER_NOT_READY');
+   const direct=options.sourceUpdateId!==undefined;
+   // Direct webhook delivery needs Telegram transport but must not depend on
+   // whether the separately scheduled worker endpoint is enabled.
+   if(!direct&&!checked.workerReady)fail('BOT_WORKER_NOT_READY');
+   const token=String(env.TELEGRAM_BOT_TOKEN||'').trim();
+   if(direct&&!token)fail('BOT_TOKEN_MISSING');
    const timeoutMs=options.timeoutMs===undefined?checked.timeoutMs:positiveInteger(options.timeoutMs,'BOT_TIMEOUT_INVALID',{min:250,max:10000});
    if(!isValidTelegramTimeout(timeoutMs))fail('BOT_TIMEOUT_INVALID');
    const limit=options.limit===undefined?50:positiveInteger(options.limit,'BOT_DRAIN_LIMIT_INVALID',{max:1000});
    const maxDurationMs=options.maxDurationMs===undefined?25000:positiveInteger(options.maxDurationMs,'BOT_DRAIN_BUDGET_INVALID',{min:250,max:29000});
-   return drainTelegramOutbox({store:activeStore,token:String(env.TELEGRAM_BOT_TOKEN||'').trim(),fetchImpl,timeoutMs,limit,maxDurationMs,monotonicNow:options.monotonicNow});
+   return drainTelegramOutbox({store:activeStore,token,fetchImpl,timeoutMs,limit,maxDurationMs,monotonicNow:options.monotonicNow,sourceUpdateId:options.sourceUpdateId});
+  },
+  hasPendingImmediateForUpdate(updateId){
+   if(typeof activeStore.hasPendingImmediateForUpdate!=='function')fail('BOT_STORE_CAPABILITY_MISSING');
+   return activeStore.hasPendingImmediateForUpdate(updateId);
   }
  };
 }

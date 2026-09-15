@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {BOT_CALLBACK_TTL_MS,BOT_RETENTION_MS,classifyTelegramResponse,createMemoryBotStore,nextAllowedReminderTime} from '../server/bot-store.js';
+import {BOT_CALLBACK_TTL_MS,BOT_INTERACTIVE_DISPATCH_GRACE_MS,BOT_RETENTION_MS,classifyTelegramResponse,createMemoryBotStore,nextAllowedReminderTime} from '../server/bot-store.js';
 
 const confirmed=async(store,id,recipient,appointment)=>store.createBooking({id,clientUserId:recipient,clientChatId:recipient,status:'confirmed',appointment,reminders:{enabled:true}});
 const queueReminder=async(store,request,now)=>store.enqueue(request.clientChatId,'care','reminder',now,{requestId:request.id,appointment:request.appointment,appointmentRevision:request.appointmentRevision});
@@ -22,13 +22,18 @@ test('callback answers are globally prioritized and expire quickly',async()=>{
  const ordinary=await store.enqueue('chat','ordinary');
  const callback=(await store.transactUpdate('callback',tx=>tx.answerCallback('query-1'))).result;
  assert.equal(callback.expiresAt,BOT_CALLBACK_TTL_MS);
- assert.equal((await store.leaseNext('worker')).id,callback.id);
+ // Fresh interaction work belongs to the webhook; a worker may still take an
+ // unrelated non-sourced item, but cannot race this callback.
+ const workerLease=await store.leaseNext('worker');
+ assert.equal(workerLease.id,ordinary.id);
+ assert.equal((await store.leaseNext('webhook',30000,{sourceUpdateId:'callback',immediateOnly:true})).id,callback.id);
  now=BOT_CALLBACK_TTL_MS+1;
- // A normal mutation prunes expired callback work; ordinary work remains available.
+ // A normal mutation prunes expired callback work while unrelated worker work
+ // remains intact.
  await store.setSession('prune',{stage:'idle'});
  const state=await store.inspect();
  assert.equal(state.outbox[callback.id],undefined);
- assert.equal((await store.leaseNext('worker')).id,ordinary.id);
+ assert.equal(state.outbox[ordinary.id].state,'leased');
 });
 
 test('recipient has one active lease, maintains order, and recovers an expired unstarted lease',async()=>{
@@ -88,6 +93,21 @@ test('recipient sequence metadata remains while work exists and resets only afte
  await blockedStore.transactUpdate('seed-block',tx=>{tx.raw.recipientSequence.blocked=4;tx.raw.recipientBlockedUntil.blocked=1000;});
  const blockedItem=await blockedStore.enqueue('blocked','after-backoff');
  assert.equal(blockedItem.sequence,5);
+});
+
+test('worker leaves fresh sourced interaction work to the webhook, then recovers it after grace',async()=>{
+ let now=0;const store=createMemoryBotStore({clock:()=>now});
+ const item=(await store.transactUpdate(901,tx=>tx.enqueue('client','fresh interaction'))).result;
+ assert.equal(item.sourceUpdateId,'901');
+ assert.equal(await store.leaseNext('worker'),undefined);
+ const direct=await store.leaseNext('webhook',30000,{sourceUpdateId:901,immediateOnly:true});
+ assert.equal(direct.id,item.id);
+ await store.beginDelivery(direct.id,direct.lease.fence);
+ await store.finishDelivery(direct.id,direct.lease.fence,{state:'sent',messageId:1});
+ // A separate update proves delayed worker recovery without racing a fresh one.
+ const recover=(await store.transactUpdate(902,tx=>tx.enqueue('other','recover later'))).result;
+ now=BOT_INTERACTIVE_DISPATCH_GRACE_MS;
+ assert.equal((await store.leaseNext('worker')).id,recover.id);
 });
 
 test('only authoritative HTTP 200 Telegram acknowledgements are terminal sent',()=>{

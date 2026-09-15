@@ -107,7 +107,7 @@ export function createTelegramBot({store,config={},verifyStaffMembership=async()
  return {handle,formatAppointment:dateFormat,infoOnly:!bookingReady(cfg)};
 }
 
-export async function drainTelegramOutbox({store,token,workerId='worker',fetchImpl=fetch,limit=50,timeoutMs=8000,maxDurationMs=15000,monotonicNow=()=>performance.now()}={}){
+export async function drainTelegramOutbox({store,token,workerId='worker',fetchImpl=fetch,limit=50,timeoutMs=8000,maxDurationMs=15000,monotonicNow=()=>performance.now(),sourceUpdateId}={}){
  if(!store||typeof store.leaseNext!=='function')throw new Error('Telegram store missing');
  if(!token)throw new Error('Telegram token missing');
  if(!Number.isInteger(limit)||limit<1)throw new Error('Telegram drain limit invalid');
@@ -116,11 +116,14 @@ export async function drainTelegramOutbox({store,token,workerId='worker',fetchIm
  if(!Number.isInteger(maxDurationMs)||maxDurationMs<250)throw new Error('Telegram drain budget invalid');
  if(typeof monotonicNow!=='function')throw new Error('Telegram monotonic clock invalid');
  const started=monotonicNow(),marginMs=500,leaseMs=timeoutMs+marginMs;
+ // A source selector is only used by the webhook. It drains its own immediate
+ // committed replies, never a reminder or unrelated outbox entry.
+ const direct=sourceUpdateId!==undefined;
  let count=0;
  while(count<limit){
   // Never start a request unless its entire timeout and a small finish margin fit.
   if(monotonicNow()-started+leaseMs>maxDurationMs)break;
-  const leased=await store.leaseNext(workerId,leaseMs);
+  const leased=await store.leaseNext(workerId,leaseMs,direct?{sourceUpdateId,immediateOnly:true}:undefined);
   if(!leased)break;
   const item=await store.beginDelivery(leased.id,leased.lease.fence,leaseMs);
   if(!item){count++;continue;}

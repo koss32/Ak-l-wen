@@ -6,6 +6,11 @@ export const BOT_MAX_STATE_BYTES=512*1024;
 // Requests expire after 30 days, so appointments must leave a full day for care work.
 export const BOT_MAX_APPOINTMENT_DELAY_MS=BOT_RETENTION_MS-24*60*60*1000;
 export const BOT_CALLBACK_TTL_MS=15*1000;
+// The webhook owns newly committed interactive work briefly before the worker
+// may recover it. This prevents a concurrent worker invocation from stealing a
+// current Telegram click while retaining a bounded recovery path.
+export const BOT_INTERACTIVE_DISPATCH_GRACE_MS=30*1000;
+const BACKGROUND_KINDS=new Set(['reminder','checkin']);
 const clone=value=>value===undefined?undefined:structuredClone(value);
 const freshState=()=>({schema:2,sessions:{},requests:{},clients:{},updates:{},actions:{},outbox:{},recipientSequence:{},recipientBlockedUntil:{}});
 const id=()=>randomUUID().replaceAll('-','');
@@ -52,7 +57,9 @@ function txFacade(state,{now,updateId,nonce}){
  const putSession=(key,value)=>{const revision=token(16);state.sessions[String(key)]={value:{...clone(value),revision},expiresAt:now+BOT_SESSION_MS};return clone(state.sessions[String(key)].value);};
  const enqueue=(recipient,text,kind='message',notBefore=now,meta={},method='sendMessage',payload)=>{
   const r=String(recipient),sequence=(state.recipientSequence[r]||0)+1;state.recipientSequence[r]=sequence;
-  const item={id:token(32),recipient:r,text:String(text||''),kind,meta:clone(meta),method,payload:payload?clone(payload):undefined,sequence,state:'queued',notBefore:Number(notBefore)||now,attempts:0,lease:null,createdAt:now,expiresAt:now+(kind==='callback-answer'?BOT_CALLBACK_TTL_MS:BOT_RETENTION_MS)};state.outbox[item.id]=item;return clone(item);
+  // schema:2 stores tolerate this additive field. It binds all work created by
+  // a Telegram update to that update without changing existing item ordering.
+  const item={id:token(32),recipient:r,text:String(text||''),kind,meta:clone(meta),method,payload:payload?clone(payload):undefined,sequence,state:'queued',notBefore:Number(notBefore)||now,attempts:0,lease:null,createdAt:now,expiresAt:now+(kind==='callback-answer'?BOT_CALLBACK_TTL_MS:BOT_RETENTION_MS),...(updateId===null?{}:{sourceUpdateId:String(updateId)})};state.outbox[item.id]=item;return clone(item);
  };
  const request=requestId=>{const value=state.requests[String(requestId)];return value&&value.expiresAt>now?clone(value):undefined;};
  return {
@@ -100,7 +107,32 @@ function createStore({readSnapshot,commitSnapshot,clock,maxBytes=BOT_MAX_STATE_B
   createBooking:(record,staffRecipient,staffText)=>mutate(tx=>{const saved=tx.createRequest(record);if(staffRecipient&&staffText){const card=typeof staffText==='string'?{text:staffText}:staffText;tx.enqueue(staffRecipient,card.text,'staff-card',clock(),card.meta||{});}return saved;}),
   transition:(key,revision,change,notifications=[])=>mutate(tx=>{const result=tx.updateRequest(key,revision,change);if(result.ok)for(const n of notifications)tx.enqueue(n.recipient,n.text,n.kind||'message',n.notBefore||clock(),{requestId:key,...n.meta});return result;}),
   enqueue:(...args)=>mutate(tx=>tx.enqueue(...args)),cancelCare:key=>mutate(tx=>tx.cancelCare(key)),
-  leaseNext:(workerId,leaseMs=30000)=>mutate(tx=>{const state=tx.raw,now=tx.now,candidates=Object.values(state.outbox).filter(x=>x.state==='queued'&&x.notBefore<=now&&(state.recipientBlockedUntil[x.recipient]||0)<=now).sort((a,b)=>(a.kind==='callback-answer'?0:1)-(b.kind==='callback-answer'?0:1)||a.notBefore-b.notBefore||a.sequence-b.sequence||a.createdAt-b.createdAt);for(const item of candidates){const active=Object.values(state.outbox).some(other=>other.recipient===item.recipient&&other.id!==item.id&&['leased','sending'].includes(other.state));const olderDue=Object.values(state.outbox).some(other=>other.recipient===item.recipient&&other.id!==item.id&&other.sequence<item.sequence&&other.state==='queued'&&other.notBefore<=now);if(active||olderDue)continue;item.state='leased';item.attempts++;item.lease={workerId:String(workerId),fence:tx.newToken(20),until:now+leaseMs};return clone(item);}return undefined;}),
+  leaseNext:(workerId,leaseMs=30000,{sourceUpdateId,immediateOnly=false}={})=>mutate(tx=>{
+   const state=tx.raw,now=tx.now,selectedSource=sourceUpdateId===undefined?null:String(sourceUpdateId),items=Object.values(state.outbox),ceilings=new Map();
+   // Include preceding immediate replies for these same recipients. Otherwise an
+   // old conversation reply would block a new click until the background worker.
+   if(selectedSource!==null)for(const item of items)if(item.sourceUpdateId===selectedSource&&!BACKGROUND_KINDS.has(item.kind))ceilings.set(item.recipient,Math.max(ceilings.get(item.recipient)||0,item.sequence));
+   const eligible=item=>{
+    if(item.state!=='queued'||item.notBefore>now||(state.recipientBlockedUntil[item.recipient]||0)>now)return false;
+    if(selectedSource!==null){
+     if(immediateOnly&&BACKGROUND_KINDS.has(item.kind))return false;
+     return item.sourceUpdateId===selectedSource||(!BACKGROUND_KINDS.has(item.kind)&&item.sequence<=(ceilings.get(item.recipient)||0));
+    }
+    // Give fresh interaction work to its webhook; recover later only on failure.
+    return !(item.sourceUpdateId!==undefined&&!BACKGROUND_KINDS.has(item.kind)&&item.createdAt+BOT_INTERACTIVE_DISPATCH_GRACE_MS>now);
+   };
+   const candidates=items.filter(eligible).sort((a,b)=>(a.kind==='callback-answer'?0:1)-(b.kind==='callback-answer'?0:1)||a.notBefore-b.notBefore||a.sequence-b.sequence||a.createdAt-b.createdAt);
+   for(const item of candidates){
+    const active=items.some(other=>other.recipient===item.recipient&&other.id!==item.id&&['leased','sending'].includes(other.state));
+    // A queued reminder must not hold up an interactive reply. Active delivery
+    // locks and Telegram rate-limit blocks still apply to the entire recipient.
+    const olderDue=items.some(other=>other.recipient===item.recipient&&other.id!==item.id&&other.sequence<item.sequence&&other.state==='queued'&&other.notBefore<=now&&!(selectedSource!==null&&immediateOnly&&BACKGROUND_KINDS.has(other.kind)));
+    if(active||olderDue)continue;
+    item.state='leased';item.attempts++;item.lease={workerId:String(workerId),fence:tx.newToken(20),until:now+leaseMs};return clone(item);
+   }
+   return undefined;
+  }),
+  hasPendingImmediateForUpdate:async updateId=>{const state=normalized((await readSnapshot()).state),source=String(updateId);pruneState(state,clock());return Object.values(state.outbox).some(item=>item.sourceUpdateId===source&&!BACKGROUND_KINDS.has(item.kind)&&['queued','leased','sending'].includes(item.state));},
   beginDelivery:(itemId,fence,leaseMs=30000)=>mutate(tx=>{const item=tx.raw.outbox[String(itemId)];if(!item||item.state!=='leased'||item.lease?.fence!==fence||item.lease.until<=tx.now)return undefined;const blockedUntil=tx.raw.recipientBlockedUntil[item.recipient]||0;if(blockedUntil>tx.now){item.state='queued';item.notBefore=Math.max(item.notBefore,blockedUntil);item.lease=null;return undefined;}if(item.kind==='reminder'){const req=tx.getRequest(item.meta?.requestId),appointment=req?.appointment;if(!req||req.status!=='confirmed'||!req.reminders?.enabled||req.clientChatId!==item.recipient||req.appointmentRevision!==item.meta?.appointmentRevision||appointment!==item.meta?.appointment||!Number.isFinite(appointment)||tx.now>=appointment){item.state='cancelled';item.lease=null;return undefined;}const allowedAt=nextAllowedReminderTime(tx.now,appointment);if(allowedAt===null){item.state='cancelled';item.lease=null;return undefined;}if(allowedAt>tx.now){item.state='queued';item.notBefore=allowedAt;item.lease=null;return undefined;}}item.state='sending';item.lease.until=tx.now+leaseMs;return clone(item);}),
   finishDelivery:(itemId,fence,result)=>mutate(tx=>{const item=tx.raw.outbox[String(itemId)];if(!item||item.state!=='sending'||item.lease?.fence!==fence)return false;if(result.state==='deferred'){item.state='queued';item.notBefore=tx.now+result.retryAfter*1000;tx.raw.recipientBlockedUntil[item.recipient]=item.notBefore;item.lease=null;return true;}item.state=result.state;item.messageId=result.messageId;item.finishedAt=tx.now;item.lease=null;return true;}),
   inspect:async()=>normalized((await readSnapshot()).state)

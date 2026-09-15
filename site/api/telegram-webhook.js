@@ -57,12 +57,17 @@ export function createWebhookHandler({env=process.env,createRuntime=createBotRun
    const runtime=createRuntime(env);
    const result=await runtime.bot.handle(update);
    if(result?.ok===false)return json(res,400,result);
-   // Callback acknowledgements are durable first, then immediately given a bounded chance.
-   // A worker remains the fallback; a transport failure cannot uncommit this update.
-   try{await runtime.drain({limit:10,maxDurationMs:runtimeTimeoutBudget(checked.timeoutMs)});}catch{/* worker will retry queued work */}
+   // The durable reducer has tagged this update's output. Drain only that
+   // immediate work now: callback ACK plus client/staff replies, never global
+   // backlog or scheduled care. A 25s dispatch window leaves serverless
+   // headroom under Vercel's 30s cap and permits more than one 2s request.
+   try{
+    await runtime.drain({limit:10,maxDurationMs:WEBHOOK_DRAIN_BUDGET_MS,sourceUpdateId:update.update_id});
+    if(await runtime.hasPendingImmediateForUpdate(update.update_id))return json(res,503,{ok:false,code:'retry'});
+   }catch{return json(res,503,{ok:false,code:'retry'});}
    return json(res,200,{ok:true,dropped:Boolean(result?.dropped)});
   }catch{return json(res,503,{ok:false,code:'retry'});}
  };
 }
-const runtimeTimeoutBudget=timeoutMs=>Math.min(12000,timeoutMs+750);
+export const WEBHOOK_DRAIN_BUDGET_MS=25000;
 export default createWebhookHandler();

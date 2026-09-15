@@ -30,6 +30,7 @@ export function createBotRuntime(env=process.env,{store,fetchImpl=fetch}={}){
   privacyUrl:checked.privacyUrl,
   deliveryReady:checked.workerReady,
   staffUserIds:checked.userIds,
+  staffAuthMode:checked.staffAuthMode,
   staffChatId:checked.staffChatId,
   privacyStatus:env.PRIVACY_PUBLICATION_STATUS||'pending',
   consentVersion:env.PRIVACY_CONSENT_VERSION||legal.consentVersion

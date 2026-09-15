@@ -7,8 +7,9 @@ import {legal} from '../src/data.js';
 
 const groupChatId='-10099';
 const config={deliveryReady:true,sourceLegalStatus:'published',privacyUrl:'https://example.test/privacy',privacyStatus:'published',consentVersion:legal.consentVersion,staffUserIds:['55','56'],staffChatId:groupChatId};
-const message=(id,text,chat=groupChatId,user=55,type='group')=>({update_id:id,message:{chat:{id,type},from:{id:user},text}});
-const callback=(id,data,chat=groupChatId,user=55,type='group')=>({update_id:id,callback_query:{id:`q${id}`,from:{id:user},data,message:{chat:{id,type}}}});
+// Deterministic Telegram-update fixtures: update_id is independent from chat identity.
+const message=(id,text,chat=groupChatId,user=55,type='group')=>({update_id:id,message:{chat:{id:chat,type},from:{id:user},text}});
+const callback=(id,data,chat=groupChatId,user=55,type='group')=>({update_id:id,callback_query:{id:`q${id}`,from:{id:user},data,message:{chat:{id:chat,type}}}});
 const sent=state=>Object.values(state.outbox).filter(item=>item.method==='sendMessage');
 const answers=state=>Object.values(state.outbox).filter(item=>item.method==='answerCallbackQuery');
 const staffCards=state=>sent(state).filter(item=>item.kind==='staff-card');
@@ -101,7 +102,7 @@ test('membership is rechecked for staff date callback, date text, and commit',as
   await bot.handle(callback(2,await action(store,'staff-date')));
   await bot.handle(message(3,'2026-09-03T18:30:00+02:00'));
   const state=await store.inspect();
-  assert.equal(state.sessions['staff:-10099:55']?.stage,'staff-date');
+  assert.equal(state.sessions['staff:-10099:55']?.value.stage,'staff-date');
   assert.equal(Object.values(state.actions).some(value=>value.type==='staff-date-commit'),false);
   assert.equal((await store.getRequest('text-revoked')).status,'pending');
  }
@@ -116,7 +117,7 @@ test('membership is rechecked for staff date callback, date text, and commit',as
   await bot.handle(callback(4,commit));
   const state=await store.inspect();
   assert.equal((await store.getRequest('commit-revoked')).status,'pending');
-  assert.equal(state.sessions['staff:-10099:55']?.stage,'staff-date-preview');
+  assert.equal(state.sessions['staff:-10099:55']?.value.stage,'staff-date-preview');
   assert.ok(Object.values(state.actions).some(value=>value.type==='staff-date-commit'));
  }
 });
@@ -152,12 +153,12 @@ test('permitted duplicate staff callback does not repeat a booking mutation',asy
  await bot.handle(update);
  const first=await store.inspect();
  assert.equal((await store.getRequest('request-1')).status,'cancelled');
- assert.equal(sent(first).length,2);
+ assert.equal(sent(first).length,3,'cancellation queues the client notice, staff acknowledgement, and refreshed staff card');
  assert.equal(answers(first).length,1);
  await bot.handle(update);
  const duplicate=await store.inspect();
  assert.equal((await store.getRequest('request-1')).status,'cancelled');
- assert.equal(sent(duplicate).length,2);
+ assert.equal(sent(duplicate).length,3);
  assert.equal(answers(duplicate).length,1);
  assert.equal(calls.length,2);
 });

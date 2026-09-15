@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runCheck,runWebhook,runWorker,PREVIEW_ORIGIN} from '../server/telegram-ops.js';
+import {runCheck,runWebhook,runWorker,runTelegramOps,PREVIEW_ORIGIN} from '../server/telegram-ops.js';
+import {spawnSync} from 'node:child_process';
 
 const TOKEN='t'.repeat(40),WEBHOOK_SECRET='h'.repeat(40),WORKER_SECRET='w'.repeat(40);
 const baseEnv=()=>({
@@ -74,7 +75,7 @@ test('webhook transmits secret internally, preserves drop_pending_updates false,
 
 test('worker delegates a bounded drain and exposes only status/count',async()=>{
  let call;
- const result=await runWorker({env:baseEnv(),createRuntime:env=>({drain:async(options)=>{call={env,options};return 3;}})});
+ const result=await runWorker({env:baseEnv(),fetchImpl:fakeFetch(),createRuntime:env=>({drain:async(options)=>{call={env,options};return 3;}})});
  assert.equal(result.ok,true);assert.equal(result.mutated,true);assert.equal(result.processed,3);assert.deepEqual(call.options,{limit:50,maxDurationMs:25000});
  assert.equal(JSON.stringify(result).includes(TOKEN),false);
 });
@@ -101,6 +102,49 @@ test('check recognizes explicit group-members mode without enumerating humans',a
  assert.equal(result.ok,true);assert.equal(result.booking_ready,true);
  assert.deepEqual(result.staff,{mode:'group_members',configured:true,group_valid:true,chat_group_or_supergroup:true,bot_admin:true,allowlisted_humans_current:false,membership_ready:true});
  assert.equal(calls.filter(call=>call.url.includes('/getChatMember')).length,1);
+});
+
+test('Preview readiness fails outside the exact deployment boundary',async()=>{
+ for(const change of [{VERCEL:'0'},{VERCEL_ENV:'production'},{VERCEL_GIT_COMMIT_REF:'other'},{PUBLIC_ORIGIN:'https://other.example'}]){
+  const result=await runCheck({env:{...baseEnv(),...change},fetchImpl:fakeFetch()});
+  assert.equal(result.booking_ready,false);assert.equal(result.ok,false);
+  assert.ok(result.errors.includes('CHECK_PRECONDITION_FAILED'));
+ }
+});
+
+test('invalid Redis URLs receive no authenticated requests, including the KV fallback',async()=>{
+ for(const url of ['http://redis.example','https://redis.example/path','https://redis.example?token=x','https://user:password@redis.example','https://redis.example/#fragment','not-a-url']){
+  for(const kv of [false,true]){
+   const calls=[],env=baseEnv();
+   if(kv){delete env.UPSTASH_REDIS_REST_URL;delete env.UPSTASH_REDIS_REST_TOKEN;env.KV_REST_API_URL=url;env.KV_REST_API_TOKEN='private-redis';}
+   else env.UPSTASH_REDIS_REST_URL=url;
+   const result=await runCheck({env,fetchImpl:fakeFetch({calls})});
+   assert.equal(result.ok,false);assert.equal(result.redis.ping_ok,false);
+   assert.ok(calls.every(call=>new URL(call.url).origin==='https://api.telegram.org'));
+  }
+ }
+});
+
+test('worker checks bot identity before runtime and redacts identity transport failures',async()=>{
+ for(const fetchImpl of [fakeFetch({botUsername:'other_bot'}),async()=>{throw new Error(`private URL ${TOKEN}`);}]){
+  let invoked=false;
+  const result=await runTelegramOps({command:'worker',env:baseEnv(),fetchImpl,createRuntime:()=>{invoked=true;return {drain:async()=>0};}});
+  assert.equal(invoked,false);assert.equal(result.ok,false);assert.equal(result.mutated,false);
+  assert.equal(JSON.stringify(result).includes(TOKEN),false);
+ }
+});
+
+test('webhook never takes over a different existing destination',async()=>{
+ const calls=[],healthy=fakeFetch({calls});
+ const fetchImpl=async(url,options)=>url.endsWith('/getWebhookInfo')?{status:200,json:async()=>({ok:true,result:{url:'https://production.example/api/webhook/'}})}:healthy(url,options);
+ const result=await runWebhook({env:baseEnv(),fetchImpl});
+ assert.equal(result.ok,false);assert.equal(result.mutated,false);assert.equal(result.code,'WEBHOOK_DESTINATION_CONFLICT');
+ assert.equal(calls.some(call=>call.url.endsWith('/setWebhook')),false);
+});
+
+test('CLI returns a nonzero exit code for a failed redacted check',()=>{
+ const result=spawnSync(process.execPath,['server/telegram-ops.js','check'],{cwd:new URL('..',import.meta.url),env:{},encoding:'utf8'});
+ assert.equal(result.status,1);assert.equal(result.stderr,'');assert.equal(JSON.parse(result.stdout).ok,false);
 });
 
 test('bot identity requires exact username, bot marker, and safe positive id',async()=>{

@@ -9,10 +9,17 @@ import {legal} from '../src/data.js';
 const GROUP='-10099';
 const requestConfig={deliveryReady:true,sourceLegalStatus:'published',privacyUrl:'https://example.test/privacy',privacyStatus:'published',consentVersion:legal.consentVersion,staffUserIds:[],staffChatId:GROUP,staffAuthMode:'group_members'};
 const allowlistConfig={...requestConfig,staffAuthMode:undefined};
-const message=(id,text,chat=GROUP,user=987,type='group',isBot=false)=>({update_id:id,message:{chat:{id,type},from:{id,is_bot:isBot},text}});
-const callback=(id,data,chat=GROUP,user=987,type='group')=>({update_id:id,callback_query:{id:`q${id}`,from:{id},data,message:{chat:{id:chat,type}}}});
+// Deterministic Telegram-update fixtures: update_id is independent from chat/user identity.
+const message=(id,text,chat=GROUP,user=987,type='group',isBot=false)=>({update_id:id,message:{chat:{id:chat,type},from:{id:user,is_bot:isBot},text}});
+const callback=(id,data,chat=GROUP,user=987,type='group')=>({update_id:id,callback_query:{id:`q${id}`,from:{id:user},data,message:{chat:{id:chat,type}}}});
 const sent=state=>Object.values(state.outbox).filter(item=>item.method==='sendMessage');
 const staffCards=state=>sent(state).filter(item=>item.kind==='staff-card');
+const clientMessages=(state,recipient='10')=>sent(state).filter(item=>item.recipient===recipient);
+async function action(store,type){
+ const entry=Object.entries((await store.inspect()).actions).filter(([,value])=>value.type===type).at(-1);
+ assert.ok(entry,`missing ${type} action`);
+ return `a:${entry[0]}`;
+}
 async function seed(store,id='request-1'){
  await store.transactUpdate(`seed-${id}`,tx=>tx.createRequest({id,clientChatId:'10',clientUserId:'10',locale:'de',status:'pending',programId:'boxen',groupId:'box-15',scheduleId:'box-week',personType:'adult',contactName:'Adult Name',participantName:'Adult Name',age:25,guardianRole:'',comment:'',consentVersion:legal.consentVersion,consentedAt:tx.now,reminders:{enabled:false},appointment:null}));
 }
@@ -68,6 +75,86 @@ test('group mode requires a valid negative group and membership integration',asy
 test('unknown staff auth mode is a configuration error',async()=>{
  const checked=assessBotConfig({...runtimeEnv(),TELEGRAM_STAFF_AUTH_MODE:'everyone'},{requireEnabled:true,requireRedis:false});
  assert.equal(checked.ok,false);assert.ok(checked.errors.includes('BOT_STAFF_AUTH_MODE_INVALID'));
+});
+
+test('group-members mode rechecks a newly joined staff member through confirm, reschedule, reply, and cancel',async()=>{
+ const store=createMemoryBotStore({clock:()=>Date.parse('2026-09-01T10:00:00Z')});
+ await seed(store,'membership-lifecycle');
+ let lookups=0;
+ const bot=botWith(store,async()=>{lookups++;return true;});
+
+ await bot.handle(message(1,'/staff membership-lifecycle'));
+ await bot.handle(callback(2,await action(store,'staff-date')));
+ await bot.handle(message(3,'2026-09-03T18:30:00+02:00'));
+ await bot.handle(callback(4,await action(store,'staff-date-commit')));
+ assert.equal((await store.getRequest('membership-lifecycle')).status,'confirmed');
+
+ await bot.handle(message(5,'/staff membership-lifecycle'));
+ await bot.handle(callback(6,await action(store,'staff-date')));
+ await bot.handle(message(7,'2026-09-04T18:30:00+02:00'));
+ await bot.handle(callback(8,await action(store,'staff-date-commit')));
+ assert.equal((await store.getRequest('membership-lifecycle')).appointment,Date.parse('2026-09-04T16:30:00Z'));
+
+ await bot.handle(message(9,'/staff membership-lifecycle'));
+ await bot.handle(callback(10,await action(store,'staff-reply')));
+ await bot.handle(message(11,'Deterministic staff reply'));
+ await bot.handle(callback(12,await action(store,'staff-reply-commit')));
+ assert.ok(clientMessages(await store.inspect()).some(item=>item.text.includes('Deterministic staff reply')));
+
+ await bot.handle(message(13,'/staff membership-lifecycle'));
+ await bot.handle(callback(14,await action(store,'staff-cancel')));
+ assert.equal((await store.getRequest('membership-lifecycle')).status,'cancelled');
+ assert.equal(lookups,14,'membership is checked afresh for every group staff update');
+});
+
+test('a member removed after opening a staff card is denied on the next group-members action',async()=>{
+ const store=createMemoryBotStore();
+ await seed(store,'removed-member');
+ let lookups=0;
+ const bot=botWith(store,async()=>++lookups===1);
+ await bot.handle(message(1,'/staff removed-member'));
+ const date=await action(store,'staff-date');
+ await bot.handle(callback(2,date));
+ const state=await store.inspect();
+ assert.equal(lookups,2);
+ assert.equal((await store.getRequest('removed-member')).status,'pending');
+ assert.equal(state.sessions['staff:-10099:987'],undefined);
+ assert.ok(Object.values(state.actions).some(value=>value.type==='staff-date'));
+ assert.equal(state.outbox[Object.keys(state.outbox).at(-1)].method,'answerCallbackQuery');
+});
+
+test('group-members runtime fails closed for deterministic timeout, malformed, and network membership responses',async()=>{
+ const responses={
+  timeout:async()=>{throw new Error('synthetic timeout');},
+  malformed:async()=>({status:200,json:async()=>({ok:true,result:{status:'member'}})}),
+  network:async()=>{throw new Error('synthetic network failure');}
+ };
+ for(const [kind,fetchImpl] of Object.entries(responses)){
+  const store=createMemoryBotStore();
+  await seed(store,kind);
+  const runtime=createBotRuntime(runtimeEnv(),{store,fetchImpl});
+  await runtime.bot.handle(message(1,`/staff ${kind}`));
+  assert.equal(staffCards(await store.inspect()).length,0,kind);
+ }
+});
+
+test('a duplicate group-members callback cannot duplicate its mutation or messages',async()=>{
+ const store=createMemoryBotStore();
+ await seed(store,'duplicate-group-members');
+ let callbackAction;
+ await store.transactUpdate('seed-duplicate-action',tx=>{
+  const request=tx.getRequest('duplicate-group-members');
+  callbackAction=tx.addAction({scope:'staff',type:'staff-cancel',requestId:request.id,appointmentRevision:request.appointmentRevision});
+ });
+ let lookups=0;
+ const bot=botWith(store,async()=>{lookups++;return true;});
+ const update=callback(1,callbackAction);
+ await bot.handle(update);
+ const afterFirst=await store.inspect();
+ assert.equal((await store.getRequest('duplicate-group-members')).status,'cancelled');
+ await bot.handle(update);
+ assert.deepEqual(await store.inspect(),afterFirst);
+ assert.equal(lookups,2,'dedupe happens after each fresh membership preflight');
 });
 
 test('real runtime propagates group-members mode and uses fresh membership transport',async()=>{

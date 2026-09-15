@@ -1,4 +1,4 @@
-import {assessBotConfig} from './bot-config.js';
+import {assessBotConfig,validPublicOrigin,isValidTelegramSecret} from './bot-config.js';
 
 const PREVIEW_ORIGIN='https://ak-loewen-bot-preview.vercel.app';
 const PREVIEW_BRANCH='release-3';
@@ -19,7 +19,7 @@ const ENV_NAMES=[
 const FIXED_ERRORS=new Set([
  'UNKNOWN_COMMAND','MUTATION_PRECONDITION_FAILED','MISSING_RUNTIME_CONFIGURATION','TRANSPORT_FAILED',
  'TELEGRAM_RESPONSE_INVALID','REDIS_RESPONSE_INVALID','RUNTIME_IMPORT_FAILED','DRAIN_FAILED',
- 'CHECK_DEADLINE_EXCEEDED','WEBHOOK_NOT_CONFIRMED','WORKER_NOT_READY'
+ 'CHECK_DEADLINE_EXCEEDED','CHECK_PRECONDITION_FAILED','WEBHOOK_NOT_CONFIRMED','WEBHOOK_DESTINATION_CONFLICT','WORKER_NOT_READY'
 ]);
 const present=value=>typeof value==='string'&&value.trim().length>0;
 const nonempty=value=>typeof value==='string'?value.trim():'';
@@ -74,7 +74,7 @@ function baseCheck(env){
  const groupValid=validNegativeChatId(assessment.staffChatId);
  const staffConfigured=groupValid&&(mode==='group_members'||(mode==='allowlist'&&ids.length>0));
  const configReady=assessment.ok;
- const bookingReady=assessment.ok===true&&assessment.bookingReady===true&&privacy;
+ const bookingReady=Object.values(preconditions(env,'BOT_WEBHOOK_ENABLED')).every(Boolean)&&assessment.ok===true&&assessment.bookingReady===true&&privacy;
  return {presence,privacy,source_branch_match:branchIsExact(env),config_ready:configReady,booking_ready:bookingReady,staffConfigured,groupValid,mode,ids,assessment};
 }
 
@@ -146,8 +146,14 @@ function aggregatesFromState(raw){
  aggregates.reminders.enabled=requests.filter(x=>isObject(x)&&x.reminders?.enabled===true).length;
  return {existing:true,schema2_compatible:true,aggregates};
 }
+// Never attach a Redis credential to a URL rejected by runtime validation.
+// Use the canonical HTTPS origin; paths, credentials, queries and fragments fail closed.
+function redisOrigin(env){
+ const url=validPublicOrigin(nonempty(env.UPSTASH_REDIS_REST_URL)||nonempty(env.KV_REST_API_URL));
+ return url?.protocol==='https:'?url.origin:null;
+}
 async function redisGet({env,key,fetchImpl,deadline}){
- const endpoint=nonempty(env.UPSTASH_REDIS_REST_URL)||nonempty(env.KV_REST_API_URL),token=nonempty(env.UPSTASH_REDIS_REST_TOKEN)||nonempty(env.KV_REST_API_TOKEN);
+ const endpoint=redisOrigin(env),token=nonempty(env.UPSTASH_REDIS_REST_TOKEN)||nonempty(env.KV_REST_API_TOKEN);
  if(!endpoint||!token)throw Object.assign(new Error('missing'),{code:'MISSING_RUNTIME_CONFIGURATION'});
  within(deadline);
  try{
@@ -158,7 +164,7 @@ async function redisGet({env,key,fetchImpl,deadline}){
 }
 async function redisCheck({env,fetchImpl,deadline}){
  const empty={ping_ok:false,state_exists:false,schema2_compatible:false,existing:false,aggregates:emptyAggregates()};
- const endpoint=nonempty(env.UPSTASH_REDIS_REST_URL)||nonempty(env.KV_REST_API_URL),token=nonempty(env.UPSTASH_REDIS_REST_TOKEN)||nonempty(env.KV_REST_API_TOKEN);
+ const endpoint=redisOrigin(env),token=nonempty(env.UPSTASH_REDIS_REST_TOKEN)||nonempty(env.KV_REST_API_TOKEN);
  if(!endpoint||!token)return empty;
  try{
   const response=await fetchImpl(`${endpoint.replace(/\/$/,'')}/ping`,{method:'GET',headers:{authorization:`Bearer ${token}`},redirect:'error',signal:AbortSignal.timeout(remaining(deadline))});
@@ -177,6 +183,7 @@ function readinessFrom({base,telegram,staff,redis}){return base.booking_ready&&t
 export async function runCheck({env=process.env,fetchImpl=fetch,now=Date.now}={}){
  const started=now(),deadline=started+CHECK_BUDGET_MS,base=baseCheck(env),errors=[];
  const output={ok:false,command:'check',source_branch_match:base.source_branch_match,env_presence:base.presence,config_ready:base.config_ready,booking_ready:false,privacy_exact:base.privacy,preconditions:preconditions(env,'BOT_WEBHOOK_ENABLED'),telegram:emptyTelegram(),staff:emptyStaff(base.mode),redis:{ping_ok:false,state_exists:false,schema2_compatible:false,existing:false,aggregates:emptyAggregates()}};
+ if(!Object.values(output.preconditions).every(Boolean))uniquePush(errors,'CHECK_PRECONDITION_FAILED');
  if(!present(env.TELEGRAM_BOT_TOKEN)){uniquePush(errors,'MISSING_RUNTIME_CONFIGURATION');}
  let me,webhook,redis,staff;
  try{me=await telegramRequest({env,method:'getMe',fetchImpl,deadline});}catch(error){uniquePush(errors,fixedError(error));}
@@ -188,7 +195,7 @@ export async function runCheck({env=process.env,fetchImpl=fetch,now=Date.now}={}
  if(results[0].status==='fulfilled')webhook=results[0].value;else uniquePush(errors,fixedError(results[0].reason));
  if(results[1].status==='fulfilled')redis=results[1].value;else uniquePush(errors,fixedError(results[1].reason));
  if(webhook)Object.assign(output.telegram,inspectWebhook(webhook));
- if(redis){if(redis.failure)uniquePush(errors,redis.failure);const {failure,...safeRedis}=redis;output.redis=safeRedis;}
+ if(redis){if(redis.failure)uniquePush(errors,redis.failure);const safeRedis={...redis};delete safeRedis.failure;output.redis=safeRedis;}
  try{staff=await loadStaff({env,fetchImpl,deadline,botId:isObject(me)?me.id:0,base});}catch(error){uniquePush(errors,fixedError(error));staff=emptyStaff(base.mode);}
  output.staff=staff;
  output.booking_ready=readinessFrom({base,telegram:output.telegram,staff,redis:output.redis});
@@ -212,6 +219,10 @@ export async function runWebhook({env=process.env,fetchImpl=fetch}={}){
  try{
   const me=await telegramRequest({env,method:'getMe',fetchImpl,deadline});
   if(!inspectMe(me)){output.code='TELEGRAM_RESPONSE_INVALID';return output;}
+  const current=await telegramRequest({env,method:'getWebhookInfo',fetchImpl,deadline});
+  if(!isObject(current)||typeof current.url!=='string'){output.code='TELEGRAM_RESPONSE_INVALID';return output;}
+  // A Preview operation must never take over another environment's webhook.
+  if(current.url&&current.url!==`${PREVIEW_ORIGIN}${WEBHOOK_PATH}`){output.code='WEBHOOK_DESTINATION_CONFLICT';return output;}
  }catch(error){output.code=fixedError(error);return output;}
  try{setResult=await telegramRequest({env,method:'setWebhook',body:{url:`${PREVIEW_ORIGIN}${WEBHOOK_PATH}`,secret_token:env.TELEGRAM_WEBHOOK_SECRET,allowed_updates:['message','callback_query'],max_connections:2,drop_pending_updates:false},fetchImpl,deadline});output.mutated=setResult===true;}catch(error){output.code=fixedError(error);}
  try{const info=await telegramRequest({env,method:'getWebhookInfo',fetchImpl,deadline});if(info)Object.assign(output,inspectWebhook(info));}catch(error){if(!output.code)output.code=fixedError(error);}
@@ -220,12 +231,15 @@ export async function runWebhook({env=process.env,fetchImpl=fetch}={}){
  return output;
 }
 
-export async function runWorker({env=process.env,createRuntime}={}){
+export async function runWorker({env=process.env,fetchImpl=fetch,createRuntime}={}){
  const p=preconditions(env,'BOT_WORKER_ENABLED');
  const output={ok:false,command:'worker',mutated:false,preconditions:p,processed:0};
  if(!mutationAllowed(env,'BOT_WORKER_ENABLED')){output.code='MUTATION_PRECONDITION_FAILED';return output;}
  if(!present(env.TELEGRAM_BOT_TOKEN)||!present(env.TELEGRAM_WORKER_SECRET)){output.code='MISSING_RUNTIME_CONFIGURATION';return output;}
  try{
+  // Confirm the intended bot before reading/draining potentially sensitive work.
+  const me=await telegramRequest({env,method:'getMe',fetchImpl,deadline:Date.now()+TELEGRAM_TIMEOUT_MS});
+  if(!inspectMe(me)){output.code='TELEGRAM_RESPONSE_INVALID';return output;}
   let factory=createRuntime;
   if(!factory){try{const module=await import('./bot-runtime.js');factory=module.createBotRuntime;}catch{throw Object.assign(new Error('runtime'),{code:'RUNTIME_IMPORT_FAILED'});}}
   if(typeof factory!=='function')throw Object.assign(new Error('runtime'),{code:'RUNTIME_IMPORT_FAILED'});
@@ -240,9 +254,32 @@ export async function runTelegramOps({command='check',env=process.env,fetchImpl=
  try{
   if(command==='check')return await runCheck({env,fetchImpl});
   if(command==='webhook')return await runWebhook({env,fetchImpl});
-  if(command==='worker')return await runWorker({env,createRuntime});
+  if(command==='worker')return await runWorker({env,fetchImpl,createRuntime});
   return {ok:false,command:'unknown',code:'UNKNOWN_COMMAND'};
  }catch(error){return {ok:false,command:['check','webhook','worker'].includes(command)?command:'unknown',code:fixedError(error)};}
+}
+
+// A remote check reuses managed Vercel KV without exporting its credentials.
+// Only a fixed schema is copied to stdout: never echo an arbitrary HTTP body.
+function safeCheckValue(value,template){
+ if(typeof template==='boolean'){if(typeof value!=='boolean')throw new Error('shape');return value;}
+ if(typeof template==='number'){if(!Number.isSafeInteger(value)||value<0)throw new Error('shape');return value;}
+ if(typeof template==='string'){if(!['allowlist','group_members','invalid'].includes(value))throw new Error('shape');return value;}
+ if(!isObject(value))throw new Error('shape');
+ return Object.fromEntries(Object.entries(template).map(([key,shape])=>[key,safeCheckValue(value[key],shape)]));
+}
+export async function runRemoteCheck({env=process.env,fetchImpl=fetch}={}){
+ const failed={ok:false,command:'check',remote:true,code:'TRANSPORT_FAILED'};
+ if(!isValidTelegramSecret(env.TELEGRAM_WORKER_SECRET))return {...failed,code:'MISSING_RUNTIME_CONFIGURATION'};
+ try{
+  const response=await fetchImpl(`${PREVIEW_ORIGIN}/api/telegram-ops/`,{method:'POST',headers:{authorization:`Bearer ${env.TELEGRAM_WORKER_SECRET}`},redirect:'error',signal:AbortSignal.timeout(29000)});
+  if(![200,503].includes(response.status)||response.redirected===true)return failed;
+  const raw=await response.json();
+  if(!isObject(raw)||raw.command!=='check'||typeof raw.ok!=='boolean'||!Array.isArray(raw.errors)||raw.errors.some(code=>!FIXED_ERRORS.has(code)))return failed;
+  const template={source_branch_match:false,config_ready:false,booking_ready:false,privacy_exact:false,preconditions:preconditions({},'BOT_WEBHOOK_ENABLED'),env_presence:envPresence({}),telegram:emptyTelegram(),staff:emptyStaff(),redis:{ping_ok:false,state_exists:false,schema2_compatible:false,existing:false,aggregates:emptyAggregates()}};
+  const checked=safeCheckValue(raw,template);
+  return {...checked,ok:response.status===200&&raw.ok&&checked.booking_ready&&checked.config_ready&&checked.source_branch_match&&Object.values(checked.preconditions).every(Boolean),command:'check',remote:true,errors:[...new Set(raw.errors)]};
+ }catch{return failed;}
 }
 
 export function serializeResult(result){
@@ -253,9 +290,10 @@ export function serializeResult(result){
 
 async function main(){
  const command=process.argv[2]||'check';
- const result=await runTelegramOps({command});
+ const result=command==='check'&&process.argv[3]==='--remote'?await runRemoteCheck():await runTelegramOps({command});
  process.stdout.write(`${serializeResult(result)}\n`);
+ process.exitCode=result.ok?0:1;
 }
-if(process.argv[1]&&process.argv[1].endsWith('/telegram-ops.js'))main().catch(()=>process.stdout.write('{"ok":false,"command":"check","code":"TRANSPORT_FAILED"}\n'));
+if(process.argv[1]&&process.argv[1].endsWith('/telegram-ops.js'))main().catch(()=>{process.exitCode=1;process.stdout.write('{"ok":false,"command":"check","code":"TRANSPORT_FAILED"}\n');});
 
 export {EXPECTED_PRIVACY,PREVIEW_ORIGIN,PREVIEW_BRANCH,ENV_NAMES,aggregatesFromState,inspectWebhook,mutationAllowed,preconditions};

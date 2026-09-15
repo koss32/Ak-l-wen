@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {legal} from '../src/data.js';
 
 const notice=await readFile(new URL('../public/telegram-privacy/index.html',import.meta.url),'utf8');
-const approved=await readFile(new URL('../../privacy/telegram-privacy-approved.md',import.meta.url),'utf8');
+const approved=await readFile(new URL('../../docs/legal/TELEGRAM-PRIVACY.md',import.meta.url),'utf8');
 
 test('Telegram privacy notice carries the approved version and controller details',()=>{
  const version=approved.match(/telegram-\d{4}-\d{2}-\d{2}-v\d+/)?.[0];

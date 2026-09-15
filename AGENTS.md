@@ -13,7 +13,7 @@ Then read **`site/AI-MAP.md`** for exact file/function ownership and **`site/REL
 - Approved Release 2 code baseline: `c8591e0aa1e197cdcc3eb850b174c6114467b595`.
 - Implementation: **`site/`**.
 - Base: `codex/release-a` at `3e8cd4f7eeb272f6237d2fab49a9d99712fb836b`. Do not overwrite Release A.
-- `codex/site-v1` is deprecated/historical. Never switch back to it for new work.
+- `codex/site-v1` is deprecated/historical. Never switch back to it for new implementation work.
 - Do not confuse Release 2 with historical v2 design concepts.
 - Standalone preview: `concepts/ak-loewen-valset-release-2.html`; build from `site/`.
 
@@ -37,6 +37,8 @@ Implementation routing: start with `site/src/render.js`, especially `DirectionEn
 
 - Legal/customer identity is **AK-LOEWEN gGmbH**; current presentation includes **VALSET**. Never substitute another company.
 - The baseline specification `docs/TZ-AK-LOEWEN-gGmbH-v5-source-of-truth.md` on branch `Ak-loewen` remains authoritative for facts not superseded by owner-approved changes in `site/RELEASE-2.md`.
+- Verified legal/company handoff facts are stored in **`docs/legal/LEGAL-DATA-SOURCES.md`**. Use it before repeating public-data research.
+- Draft publication texts are **`docs/legal/impressum-draft.md`** and **`docs/legal/telegram-privacy-draft.md`**. Preserve their draft/unpublished status and open questions; do not silently promote them to final legal text.
 - Preserve original `references/`, `assets/` and historical concepts. They are not permission to replace current implementation.
 - Keep four locales DE/RU/UK/TR.
 - Approved AK palette: `#E85A22`, `#C4501E`, `#FF7A3D`; VALSET stays navy/blue/yellow. Do not substitute `#FE4123`.
@@ -57,6 +59,7 @@ Use `site/AI-MAP.md` before searching. Prefer symbol/selector-level search:
 
 - factual data → `src/data.js`;
 - user-facing copy → `src/locales.js` and specialized `*-copy.js` files;
+- legal/company reference facts → `docs/legal/LEGAL-DATA-SOURCES.md`;
 - markup → named functions in `src/render.js`;
 - browser behavior → named functions in `public/client.js`;
 - styling → selectors/variables in `public/style.css`;

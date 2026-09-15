@@ -1,344 +1,148 @@
-# AI Implementation Map — Release 2
+# AK LÖWEN — architecture map
 
-> Fast navigation for AI/agents. Use this instead of broad repository search.
->
-> Branch: **`release-2`**. Approved code baseline: **`c8591e0aa1e197cdcc3eb850b174c6114467b595`**.  
-> Canonical cross-branch pointer: [`Ak-loewen/index.md`](https://github.com/koss32/Ak-loewen/blob/Ak-loewen/index.md).
+This map describes the current **Release 3** structure.
 
-## 1. Architecture in one screen
+## Product model
+
+There is one application: **AK LÖWEN**.
 
 ```text
-src/data.js --------------------┐
-                               ├─> src/render.js -> HTML/#page-data
-src/locales.js + *-copy.js ----┘                    │
-                                                     ├─> public/style.css
-                                                     ├─> public/client.js
-                                                     ├─> public/scroll-motion.js
-                                                     └─> public/vendor/scrollcraft.*
-
-Browser form -> /api/trial-requests
-  -> api/trial-requests.js
-  -> server/hosted-trial.js
-  -> Upstash Redis + Telegram API
-
-Local server -> server.js
-  -> server/trial-requests.js
-  -> SQLite + Telegram API
-
-Validation source -> server/validate-request.js
-Telegram message -> src/trial-message.js
-Static build -> build.js -> dist/* + standalone review HTML
+AK LÖWEN
+├─ Landing / website
+├─ Booking backend + API
+└─ Telegram integration
+   ├─ client bot flow
+   ├─ staff flow
+   ├─ webhook
+   ├─ worker / reminders
+   └─ Redis state/outbox
 ```
 
-## 2. Files by responsibility
+Telegram is not a separate project and does not have its own release line.
 
-| File | Owns | Do not use it for |
-|---|---|---|
-| `src/data.js` | programs, groups, schedules, prices, trainers, contacts, legal state, locale list | prose layout or CSS |
-| `src/locales.js` | main DE/RU/UK/TR UI copy and error/status strings | factual data duplicated from `data.js` |
-| `src/booking-copy.js` | specialized booking/form copy for 4 locales | form validation logic |
-| `src/family-copy.js` | family/parent-facing Release 2 copy | general layout |
-| `src/first-visit-copy.js` | first-visit block copy | form/server logic |
-| `src/render.js` | server-rendered HTML structure/components and `#page-data` | browser state machine |
-| `src/trial-message.js` | human-readable Telegram lead message | delivery/retry logic |
-| `src/entry.js` | root locale-entry page | localized site pages |
-| `public/style.css` | visual system, responsive layout, form/UI styling | data/content source |
-| `public/client.js` | browser state, form UX, locale switching, menus, theme, schedule filters, glove motion | hosted delivery persistence |
-| `public/scroll-motion.js` | section entrance/reveal choreography | glove choreography or form logic |
-| `public/vendor/scrollcraft.*` | third-party/vendor ScrollCraft runtime | ordinary application changes |
-| `server/validate-request.js` | authoritative server-side request validation | rendering/UI text |
-| `server/trial-requests.js` | local SQLite-backed delivery state + Telegram send | hosted Upstash path |
-| `server/hosted-trial.js` | hosted Upstash ledger, rate limit, idempotency, Telegram send | HTTP origin/content-type boundary |
-| `api/trial-requests.js` | Vercel HTTP boundary, env/config checks, origin/type/size handling | business validation rules |
-| `server.js` | local HTTP server/routes/static files/local API wiring | Vercel production config |
-| `build.js` | static/localized build + standalone review generation | runtime request handling |
-| `vercel.json` | Vercel build/output/security headers/function duration/deploy flag | app business logic |
-| `.env.example` | environment variable names only | real secret values |
-| `tests/*` | validation/delivery/browser/release checks | source-of-truth product data |
+## Active branch / release
 
-## 3. `src/data.js` — exact data areas
+- Approved previous release: `release-2`.
+- Current work: `release-3`.
+- Current release status: WIP / Preview.
+- Current release source of truth: `docs/releases/RELEASE-3.md`.
 
-Exports are the navigation points:
+Do not route new work through old `feature/*`, `hoplite/*`, `codex/*`, `START-HERE`, `HANDOFF` or `CURRENT HANDOFF` pointers.
 
-- `locales`, `localeNames` — supported locale codes/names.
-- `programs` — Boxen, Sambo & MMA, VALSET; monthly price and group IDs.
-- `groups` — age bounds, program association, schedule IDs, VALSET trainer-discretion boundary policy.
-- `schedules` — weekday IDs, start/end times, arrangement flag; timezone is normalized to `Europe/Berlin`.
-- `trainers` — trainer identity, program relation, languages, image/portrait status, copy keys, Instagram where present.
-- `contacts` — email, Telegram URL, Instagram, WhatsApp links, map and training address.
-- `legal` — entity name, manager, publication/legal status, consent version.
+## Executable application
 
-**Impact rule:** changes here can affect renderer, client form options, validator and Telegram message. Check all consumers before changing IDs.
+All runtime code is under `site/`.
 
-## 4. `src/render.js` — component/symbol map
+### Landing
 
-Search these function names rather than scanning the whole file:
+- `site/src/data.js` — programs, groups, schedules, prices, trainers, contacts and legal state.
+- `site/src/locales.js` — DE/RU/UK/TR UI copy.
+- `site/src/*-copy.js` — specialized copy blocks.
+- `site/src/render.js` — landing markup/components.
+- `site/public/style.css` — visual system and responsive styling.
+- `site/public/client.js` — navigation, locale/theme behavior, forms and landing interactions.
+- `site/public/scroll-motion.js` — section reveal choreography.
+- `site/public/vendor/scrollcraft.*` — vendor motion runtime; do not edit for ordinary product changes.
 
-- `LanguageSwitcher` — DE/RU/UK/TR links + theme toggle.
-- `Header` — sticky desktop/mobile navigation and mobile dialog.
-- `DirectionEntry` — hero AK/VALSET entry cards.
-- `Hero` — hero content and primary CTAs.
-- `CourseTimes` — schedule rows inside discipline/group sections.
-- `DisciplineDetails` — expanded discipline group/times/price content.
-- `DisciplineCard` — collapsible Boxen/Sambo cards.
-- `TrainerPortrait` — approved real portrait vs AI illustration disclosure.
-- `TrainerCard` — trainer role/bio/approach/achievement presentation.
-- `PriceCard` — monthly-price cards.
-- `field` — reusable labeled form input markup.
-- `FirstVisit` — parent/first-visit steps section.
-- `TrialForm` — complete trial form markup, consent, contact method, optional details, live/demo message.
-- `ContactBlock` — AK/VALSET contacts, WhatsApp/Instagram/address.
-- `ValsetSection` — VALSET brand section and groups.
-- `Schedule` / `ScheduleContents` — filterable schedule UI.
-- `QuestionDialog` — Telegram question dialog + sticky trial link.
-- `Footer` — footer navigation/legal links.
-- `render` — page composition, legal placeholder pages, canonical/hreflang, `#page-data`, JS/CSS includes.
-
-**Do not edit generated `concepts/ak-loewen-valset-release-2.html` to change the site.** Change source and rebuild.
-
-## 5. `public/client.js` — browser function map
-
-Search these symbols:
-
-### Theme and basic helpers
-
-- `applyTheme` — dark/light/system theme and `<meta name="theme-color">`.
-- `status` / `error` — form status and per-field validation UI.
-- `currentData` — reads current form payload from DOM.
-- `syncContactMethod` — shows selected phone/email/Telegram field.
-
-### Form option logic
-
-- `groupOptions` — filters groups by discipline, repopulates preferred-time options, toggles VALSET Instagram hint.
-- `ageSuggestion` — detects age/group mismatch and proposes compatible group.
-- `validate` — client-side validation mirror for UX; server validation remains authoritative.
-- `syncSubmit` — locks controls and manages submit/busy state.
-- `submit` — creates/reuses request UUID, POSTs `/api/trial-requests`, preserves payload on `uncertain`/`pending` to avoid accidental duplicate submissions.
-
-### Navigation / accessibility
-
-- `openMenu` / `closeMenu` — mobile menu dialog, scroll lock, focus restoration.
-- `openHash` — hash navigation and discipline-details opening.
-- details `toggle` handler — keeps discipline accordions mutually exclusive and updates ScrollCraft layout.
-
-### Locale switching
-
-- `morph` — updates translated DOM while preserving form controls/state/focus-sensitive nodes.
-- `changeLanguage` — fetches/morphs target locale or uses embedded standalone pages; updates canonical/alternate links and restores form/filter state.
-
-### Motion/navigation state
-
-- `scheduleMotion` / `frame` — decorative glove transform/opacity, VALSET artwork parallax, active nav section. Honors reduced motion.
-- `headerOffset` / `updateHeaderOffset` — CSS scroll offset based on sticky header height.
-
-### Schedule + question dialog
-
-- `filterSchedule` — brand/direction/age filtering and result count.
-- `closeQuestion` + dialog listeners — accessible Telegram question modal.
-
-**Division of motion ownership:** glove choreography lives here; section entrance/reveal effects live in `public/scroll-motion.js`.
-
-## 6. `public/style.css` — selector map
-
-Search by selector/category; line numbers are intentionally not used because they become stale.
-
-- `:root` — AK/VALSET palette, fonts, ScrollCraft CSS variables.
-- global `html/body/h*/.wrap/.blk/.btn/.tlink` — base typography/layout/controls/accessibility.
-- `.site-header`, `.nav-*`, `.languages`, `.menu-button`, `dialog` — navigation and mobile menu.
-- `.glove-world`, `.glove-*`, `.hero*`, `.entry-*` — hero and decorative gloves.
-- `.disciplines`, `.discipline*`, `.detail-*`, `.group-row`, `.course-times` — discipline detail UI.
-- `.trainer-*` — trainer cards/portraits/copy.
-- `.schedule-*` — schedule picker/filters/rows/status.
-- `.price-*` — price cards.
-- `.first-visit*` — first-visit/parent section.
-- `.trial-*`, `.form-*`, `.field*`, `.consent`, `.notice` — form and validation UI.
-- `.contact-*`, `.address-*` — contacts/location.
-- `.about-*` — organization section.
-- `.valset-*`, `.val-group*` — VALSET visual subsystem.
-- footer selectors — final CTA/navigation/legal links.
-- media queries near file end — tablet/mobile adaptations.
-- `[data-theme="light"]` / light-theme overrides — light palette behavior.
-
-## 7. `public/scroll-motion.js` — reveal map
-
-This file is intentionally small and separate from glove motion.
-
-- `groups` array maps selectors to animation kinds (`heading`, `card`, `portrait`, `price`, `step`, `scene`, `flow`).
-- `stop` cancels active animation for focus/reduced-motion safety.
-- `reveal` selects transform/opacity/duration based on kind/mobile state.
-- `IntersectionObserver` triggers each element once.
-- focus/reduced-motion/visibility listeners prevent inaccessible/perpetual motion.
-
-Do not add another global scroll engine here. Content must remain visible without JS.
-
-## 8. Form/server request path
-
-### `server/validate-request.js`
-
-`validateRequest(raw)` is the authoritative schema/consistency check:
-
-- name/contact syntax and length;
-- at least one contact;
-- integer age;
-- valid program/group pairing and age range;
-- preferred schedule belongs to chosen group;
-- comment control chars/length;
-- valid locale;
-- consent + exact `legal.consentVersion`;
-- UUID v4 request ID.
-
-If client validation changes, keep server behavior compatible; do not rely on browser validation for security.
-
-### `src/trial-message.js`
-
-`formatTrialMessage(d, receivedAt)` maps IDs to German-readable program/group/schedule labels and formats the Telegram lead card. It does not send anything.
-
-### `server/hosted-trial.js`
-
-- Lua `claimScript` — idempotent request claim, conflict detection, stale pending -> uncertain.
-- `rateScript` — per-IP rate counter/window.
-- `markScript` — delivery-state persistence without overwriting delivered state.
-- `createUpstashLedger(redis)` — Redis adapter.
-- `createHostedTrialService(...)` / `handle` — validate, claim, send Telegram message, classify certain failure vs uncertain result, avoid duplicate resend after ambiguous delivery.
-
-### `api/trial-requests.js`
-
-Vercel entrypoint checks:
-
-- POST only;
-- `FORM_DELIVERY_ENABLED === 'true'`;
-- JSON content type;
-- expected origin;
-- content length <= 8 KiB;
-- Redis env available;
-- constructs Upstash + hosted service;
-- uses forwarded/client IP;
-- fails closed to `not_configured`/`uncertain`.
-
-### `server/trial-requests.js`
-
-Local development equivalent using SQLite and in-memory IP rate tracking. It marks old `pending` records `uncertain` after restart because delivery cannot be proven.
-
-## 9. Build/local runtime
-
-### `server.js`
-
-- `/` -> locale-entry page.
-- `/api/trial-requests` -> local API boundary/body parsing.
-- `/(de|ru|uk|tr)/` + legal paths -> SSR via `render`.
-- `/public` assets -> static file handling.
-- local delivery only becomes live when legal/config conditions permit.
-
-### `build.js`
-
-- copies `public/` to `dist/`;
-- generates 4 locale home pages;
-- generates Impressum/Datenschutz placeholders for each locale;
-- creates `dist/index.html` locale entry;
-- writes `robots.txt` with `Disallow: /`;
-- generates standalone `dist/ak-loewen-valset-release-2.html` with embedded CSS/JS/images and non-live page data.
-
-### `vercel.json`
-
-- `npm run build` -> `dist`;
-- framework disabled;
-- `/api/trial-requests.js` max duration 30s;
-- security/privacy headers;
-- `git.deploymentEnabled: false` — do not change without explicit deployment instruction.
-
-## 10. Tests map
-
-- `tests/form.test.js` — validation/form-domain expectations.
-- `tests/trial.test.js` — local SQLite/Telegram delivery behavior.
-- `tests/hosted.test.js` — hosted ledger/delivery behavior.
-- `tests/upstash-integration.mjs` — Upstash path.
-- `tests/browser.mjs` — browser behavior/general QA.
-- `tests/form-browser.mjs` — browser form flow.
-- `tests/mobile-locales.mjs` — mobile + locales.
-- `tests/portrait-browser.mjs` — trainer portrait presentation.
-- `tests/build-review.mjs`, `outcomes.mjs`, `release-a.mjs` — release/history-oriented review scripts; inspect before assuming they validate Release 2.
-
-Package commands in `package.json`:
-
-```sh
-npm test
-npm run lint
-npm run build
-```
-
-Run browser scripts only when the appropriate browser/runtime is available, and report exactly what ran.
-
-## 11. Generated/reference material — avoid wasting context
-
-- `dist/` — generated output; do not treat as source.
-- `concepts/ak-loewen-valset-release-2.html` — standalone generated review copy; useful for viewing, not architecture discovery.
-- old v1/v2 concept HTML — historical.
-- `public/vendor/scrollcraft.*` — vendor runtime; do not inspect for ordinary app work.
-- `site/scrollcraft/` — supporting ScrollCraft docs/fingerprints, not application source.
-- `evidence/*.png` — screenshots/evidence only.
-
-## 12. Change-impact shortcuts
-
-- Change group ID/schedule ID -> inspect `data.js`, client option logic, validator, Telegram formatter, tests.
-- Change consent version -> inspect `data.js`, rendered `#page-data`, validator, tests, legal readiness.
-- Change form field -> inspect `render.js` `TrialForm`, `client.js` `currentData/validate/submit`, `validate-request.js`, `trial-message.js`, tests.
-- Change locale key -> inspect all four locales plus specialized copy merge/use sites.
-- Change header height/layout -> inspect CSS + `client.js` `headerOffset/updateHeaderOffset`.
-- Change glove animation -> `client.js` `scheduleMotion/frame`; not `scroll-motion.js`.
-- Change entrance animation -> `scroll-motion.js`; not ScrollCraft vendor.
-- Change hosted request behavior -> `api/trial-requests.js` + `hosted-trial.js` + hosted tests.
-
-## 13. End-of-work handoff
-
-After repository changes, update the canonical `CURRENT HANDOFF` block in [`Ak-loewen/index.md`](https://github.com/koss32/Ak-loewen/blob/Ak-loewen/index.md).
-
-Record exact branch/commit, keep owner-approved current version separate from WIP, and update this map if feature ownership or architecture changed.
-## Telegram-native bot (implemented, off by default)
+### Landing booking backend
 
 ```text
-Telegram update -> api/telegram-webhook.js (raw 128 KiB boundary + strong secret)
-  -> server/bot-runtime.js -> server/telegram-bot.js pure update reducer
-  -> server/bot-store.js versioned bounded JSON aggregate
-  -> Redis Lua generation CAS (dedupe + domain + action + outbox atomically)
-External authenticated scheduler -> api/telegram-worker.js
-  -> lease -> beginDelivery final guard -> Telegram HTTP with timeout -> terminal result
+browser form
+  -> /api/trial-requests
+  -> site/api/trial-requests.js
+  -> site/server/hosted-trial.js
+  -> Redis + Telegram delivery
 ```
 
-- `server/bot-store.js` — memory test adapter and complete Redis/Upstash aggregate
-  adapter; 512 KiB capacity guard, 30-minute sessions/actions, 30-day domain/outbox/
-  dedupe retention, Lua CAS with opaque generation, runnable-recipient ordering,
-  leased/sending fencing, final reminder guard and conservative result classification.
-- `server/telegram-bot.js` — DE/RU/UK/TR private intake, data-driven groups/schedules,
-  adult/minor/guardian/privacy/preview validation, durable client lookup, staff card
-  refresh/confirm/reschedule/cancel/reply preview, reminders and outbox drainer.
-- `server/bot-runtime.js` — no volatile production fallback. Pending publication
-  configuration permits info-only operation while booking remains gated by source + environment +
-  exact consent version + HTTPS privacy URL.
-- `server/bot-config.js` — redacted runtime assessment, strict numeric staff IDs,
-  independent webhook/worker secrets and privacy/worker readiness.
-- `server/bot-copy.js` — DE/RU/UK/TR bot dialogs, FAQ question labels and German
-  default (`DEFAULT_LOCALE`). Only saved/explicit choices change the initial
-  German language; Telegram's language hint no longer selects the bot locale.
-- `server/telegram-bot.js` `menu` / `languageMenu` / `faq` — button navigation,
-  separate language selection and draft-preserving FAQ. Answers reuse
-  `src/first-visit-copy.js` and `contacts` from `src/data.js`; no AI/free-chat service.
-- `public/telegram-privacy/index.html` — standalone approved-for-publication German
-  notice with the supplied Russian translation; `build.js` copies it to
-  `dist/telegram-privacy/index.html`. `server.js` serves `/telegram-privacy/` locally.
-  Approved content: `../privacy/telegram-privacy-approved.md`. Activation/handoff:
-  `../START-HERE.md`. Owner approval does not mark the notice publicly deployed.
-- `api/telegram-webhook.js` / `api/telegram-worker.js` — protected Vercel boundaries.
-  No webhook registration, deployment or scheduler is installed by the repository.
-- `api/telegram-link.js` — intentional 503. The ownership-proofed web bridge is
-  explicitly excluded; public request-ID association is not available.
-- `tests/bot-*.test.js`, `tests/telegram-bot.test.js`, `tests/telegram-api.test.js` —
-  complete flow, concurrency/fencing/security tests, including real local Redis Lua.
-- `BOT-SETUP.md` / `BOT-VERIFICATION.md` — configuration, legal gate, retention,
-  scaling limit, uncertainty runbook and historical test evidence. Current
-  continuation and verification boundary: `../START-HERE.md`.
+- `site/server/validate-request.js` — authoritative request validation.
+- `site/src/trial-message.js` — lead message formatting.
+- `site/server/trial-requests.js` — local development delivery path.
+- `site/server/hosted-trial.js` — hosted idempotency/rate-limit/delivery path.
+- `site/api/trial-requests.js` — Vercel HTTP boundary.
 
-The existing `/api/trial-requests` path is unchanged. The Telegram notice was
-approved and published on 2026-09-15. Local source uses `published` and consent
-version `telegram-2026-09-15-v1`; the notice-stage deployment/environment still
-keep booking pending until the minute scheduler and final runtime activation.
-Deployment evidence: `../operations/telegram-preview-state.json`.
+### Telegram integration
+
+```text
+Telegram update
+  -> site/api/telegram-webhook.js
+  -> site/server/bot-runtime.js
+  -> site/server/telegram-bot.js
+  -> site/server/bot-store.js
+  -> Redis aggregate / outbox
+
+Authenticated scheduler
+  -> site/api/telegram-worker.js
+  -> queued delivery / reminders
+  -> Telegram API
+```
+
+- `site/server/telegram-bot.js` — client and staff conversation reducer.
+- `site/server/bot-runtime.js` — runtime/config boundary.
+- `site/server/bot-config.js` — configuration validation/readiness.
+- `site/server/bot-copy.js` — DE/RU/UK/TR Telegram copy.
+- `site/server/bot-store.js` — Redis/state/outbox logic.
+- `site/server/telegram-staff.js` — trainer-group membership validation support.
+- `site/api/telegram-webhook.js` — protected Telegram webhook endpoint.
+- `site/api/telegram-worker.js` — protected worker endpoint.
+- `site/api/telegram-link.js` — intentionally disabled bridge endpoint.
+- `site/public/telegram-privacy/index.html` — published Preview Privacy notice.
+
+Current Telegram documentation is only under `docs/integrations/telegram/`.
+
+## Build / runtime
+
+- `site/server.js` — local runtime.
+- `site/build.js` — generates localized site output and Release 3 standalone review artifact.
+- `site/vercel.json` — Vercel configuration.
+- `site/.env.example` — variable names only; never store real secrets.
+
+## Tests
+
+- `site/tests/*.test.js` — unit/integration tests used by `npm test`.
+- `site/tests/browser.mjs` — browser QA.
+- `site/tests/form-browser.mjs` — landing booking browser flow.
+- `site/tests/mobile-locales.mjs` — locale/mobile QA.
+- `site/tests/portrait-browser.mjs` — trainer portrait QA.
+- `site/tests/build-review.mjs` — standalone build review.
+- Telegram tests are named `telegram-*` and `bot-*` under the same `site/tests/` folder because Telegram is part of the same application.
+
+Historical release-specific scripts are stored in `archive/technical/`, not in the active test map.
+
+## Documentation
+
+- `docs/releases/RELEASE-2.md` — approved previous release.
+- `docs/releases/RELEASE-3.md` — current whole-project status.
+- `docs/integrations/telegram/` — Telegram setup/activation/verification inside Release 3.
+- `docs/legal/TELEGRAM-PRIVACY.md` — approved Telegram Privacy source.
+- `docs/project/` — product requirements.
+- `docs/development/README.md` — development entry point.
+
+## Archive
+
+Everything in `archive/` is historical/reference material. It must not override current code or Release 3 documentation.
+
+This includes old concepts, old handoff notes, previous verification reports, previous release names and screenshots/evidence.
+
+## Change routing
+
+- Landing factual data → `site/src/data.js`.
+- Landing copy → `site/src/locales.js` / specialized copy modules.
+- Landing structure → `site/src/render.js`.
+- Landing browser behavior → `site/public/client.js`.
+- Landing styles → `site/public/style.css`.
+- Website form delivery → `site/api/trial-requests.js` + `site/server/hosted-trial.js`.
+- Telegram dialogs/flow → `site/server/telegram-bot.js` + `site/server/bot-copy.js`.
+- Telegram persistence/delivery → `site/server/bot-store.js` + worker/webhook APIs.
+- Trainer authorization → `site/server/telegram-staff.js` and staff handling in `telegram-bot.js`.
+
+## End-of-work rule
+
+Do not create another handoff file.
+
+After a repository-changing task:
+
+1. update the relevant `docs/releases/RELEASE-N.md` status;
+2. update the relevant integration document if architecture/config changed;
+3. keep the release marked WIP/Preview/approved accurately;
+4. report actual checks only;
+5. never promote or deploy Production merely to simplify handoff.

@@ -1,10 +1,12 @@
-# Development
+# AK LÖWEN development
 
-Рабочее приложение находится целиком в `site/`.
+`site/` is the executable root of one AK LÖWEN application. It contains the landing, backend/API and Telegram integration.
 
-## Запуск
+The folder name `site/` is kept as the technical deployment root so Vercel/build configuration is not broken; it does **not** mean the Telegram bot is a separate project.
 
-Требуется Node.js 24+.
+## Run
+
+Requires Node.js 24+.
 
 ```sh
 cd site
@@ -12,7 +14,7 @@ npm ci
 node server.js
 ```
 
-Локальный сервер: `http://127.0.0.1:4173/` с локалями `/de/`, `/ru/`, `/uk/`, `/tr/`.
+Local routes include `/de/`, `/ru/`, `/uk/`, `/tr/` and the application APIs.
 
 ## Build
 
@@ -21,14 +23,14 @@ cd site
 node build.js
 ```
 
-Для ветки Release 3 standalone review-файл создаётся как `dist/ak-loewen-valset-release-3.html`.
+Release 3 standalone review output: `dist/ak-loewen-valset-release-3.html`.
 
-## Основные каталоги
+## Code areas
 
-- `site/src/` — данные, локали и HTML rendering.
-- `site/public/` — клиентский JS, CSS и публичные assets.
-- `site/server/` — серверная логика, включая Telegram runtime.
-- `site/api/` — Vercel/API endpoints.
-- `site/tests/` — автоматические проверки.
+- `site/src/` — landing data, copy and rendering.
+- `site/public/` — browser assets/behavior and Telegram Privacy page.
+- `site/server/` — backend plus Telegram runtime.
+- `site/api/` — Vercel endpoints for landing booking and Telegram integration.
+- `site/tests/` — tests for the whole AK LÖWEN application.
 
-Подробная карта: `docs/architecture/AI-MAP.md`.
+See `docs/architecture/AI-MAP.md` before broad code search.

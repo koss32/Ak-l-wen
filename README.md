@@ -1,29 +1,33 @@
-# AK-LOEWEN gGmbH × VALSET
+# AK LÖWEN
 
-Этот репозиторий использует простую нумерацию релизов.
+Один репозиторий = один проект **AK LÖWEN**.
 
-## Текущие версии
+Внутри проекта находятся:
 
-| Релиз | Статус | Ветка | Назначение |
+- **лендинг AK LÖWEN** — основной пользовательский интерфейс;
+- **Telegram-бот AK LÖWEN** — интеграция, привязанная к этому лендингу и процессу записи.
+
+Telegram-бот не считается отдельным проектом и не имеет отдельной нумерации версий.
+
+## Релизы
+
+| Релиз | Статус | Ветка | Что входит |
 | --- | --- | --- | --- |
-| **Release 2** | утверждён | `release-2` | утверждённая версия сайта |
-| **Release 3** | WIP / Preview | `release-3` | Telegram-бот и его Preview-интеграция |
+| **Release 2** | утверждён | `release-2` | утверждённый лендинг AK LÖWEN |
+| **Release 3** | WIP / Preview | `release-3` | тот же лендинг + интеграция Telegram-бота и её Preview-настройка |
 
-Release 3 основан на Release 2. Production не активирован и не должен меняться до завершения проверок Release 3.
+Следующая версия проекта будет называться **Release 4**, независимо от того, меняется лендинг, бот или оба компонента вместе.
 
-## Структура репозитория
+## Структура
 
-- `site/` — только рабочий код сайта, API и Telegram-бота.
-- `docs/` — актуальная документация проекта.
-- `archive/` — исторические концепты, старые проверки и материалы до текущей структуры. Не использовать как source of truth.
+- `site/` — рабочее приложение AK LÖWEN: лендинг, API, backend и код Telegram-интеграции.
+- `docs/` — актуальная документация всего проекта.
+- `archive/` — исторические материалы; не использовать как текущий source of truth.
 - `tools/` — служебные инструменты разработки.
 
-Начинать работу нужно с [`docs/README.md`](docs/README.md).
+Начинать работу: [`docs/README.md`](docs/README.md).
 
-Для текущего Release 3:
+Текущий Release 3: [`docs/releases/RELEASE-3.md`](docs/releases/RELEASE-3.md).
+Telegram как часть проекта: [`docs/integrations/telegram/README.md`](docs/integrations/telegram/README.md).
 
-1. [`docs/releases/RELEASE-3.md`](docs/releases/RELEASE-3.md)
-2. [`docs/telegram/README.md`](docs/telegram/README.md)
-3. [`docs/development/README.md`](docs/development/README.md)
-
-Технические commit SHA и старые feature/hoplite/codex-названия не являются версиями проекта.
+Технические SHA и старые `feature/*`, `hoplite/*`, `codex/*` названия не являются версиями проекта.

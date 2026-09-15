@@ -1,26 +1,30 @@
-# Документация AK-LOEWEN
+# Документация AK LÖWEN
 
-Здесь находится только актуальная документация. Исторические материалы вынесены в `archive/`.
+Документация относится к одному проекту **AK LÖWEN**: лендинг + связанные интеграции.
 
-## Релизы
+## Релизы всего проекта
 
-- `releases/RELEASE-2.md` — утверждённый сайт.
-- `releases/RELEASE-3.md` — текущая Telegram-доработка, WIP / Preview.
+- `releases/RELEASE-2.md` — утверждённый лендинг.
+- `releases/RELEASE-3.md` — текущая версия: лендинг + Telegram-интеграция, WIP / Preview.
 
-## Telegram — Release 3
+Никаких отдельных «версий Telegram» или «версий handoff» нет.
 
-- `telegram/README.md` — текущий статус и порядок работы.
-- `telegram/SETUP.md` — конфигурация Preview.
-- `telegram/ACTIVATION.md` — порядок активации.
-- `telegram/VERIFICATION.md` — что проверено и что ещё требуется проверить.
-- `telegram/PREVIEW-STATE.json` — зафиксированное состояние Preview.
+## Интеграции
 
-## Проект
+### Telegram
 
-- `development/README.md` — запуск, build и структура кода.
-- `architecture/AI-MAP.md` — карта модулей и ответственности.
+- `integrations/telegram/README.md` — роль Telegram в проекте и текущий статус.
+- `integrations/telegram/SETUP.md` — Preview-конфигурация.
+- `integrations/telegram/ACTIVATION.md` — порядок активации.
+- `integrations/telegram/VERIFICATION.md` — проверки.
+- `integrations/telegram/PREVIEW-SNAPSHOT-2026-09-15.json` — исторический снимок состояния Preview; не текущий source of truth.
+
+## Остальная документация
+
+- `development/README.md` — запуск/build и рабочая структура.
+- `architecture/AI-MAP.md` — карта модулей.
 - `project/BRIEF.md` — продуктовый brief.
-- `project/PARENT-EXPERIENCE.md` — требования к пользовательскому опыту родителей.
-- `legal/TELEGRAM-PRIVACY.md` — утверждённый текст Privacy для Telegram.
+- `project/PARENT-EXPERIENCE.md` — требования к UX родителей.
+- `legal/TELEGRAM-PRIVACY.md` — утверждённый Privacy source для Telegram-интеграции.
 
-Не создавать новые handoff-файлы. Текущий статус всегда фиксируется в `docs/releases/` и тематическом разделе `docs/`.
+История и старые handoff/verification/concept материалы находятся в `archive/`.

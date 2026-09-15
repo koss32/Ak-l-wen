@@ -57,11 +57,15 @@ export function createBotRuntime(env=process.env,{store,fetchImpl=fetch}={}){
    if(!isValidTelegramTimeout(timeoutMs))fail('BOT_TIMEOUT_INVALID');
    const limit=options.limit===undefined?50:positiveInteger(options.limit,'BOT_DRAIN_LIMIT_INVALID',{max:1000});
    const maxDurationMs=options.maxDurationMs===undefined?25000:positiveInteger(options.maxDurationMs,'BOT_DRAIN_BUDGET_INVALID',{min:250,max:29000});
-   return drainTelegramOutbox({store:activeStore,token,fetchImpl,timeoutMs,limit,maxDurationMs,monotonicNow:options.monotonicNow,sourceUpdateId:options.sourceUpdateId});
+   return drainTelegramOutbox({store:activeStore,token,fetchImpl,timeoutMs,limit,maxDurationMs,monotonicNow:options.monotonicNow,sourceUpdateId:options.sourceUpdateId,includeBackground:Boolean(options.includeBackground)});
   },
   hasPendingImmediateForUpdate(updateId){
    if(typeof activeStore.hasPendingImmediateForUpdate!=='function')fail('BOT_STORE_CAPABILITY_MISSING');
    return activeStore.hasPendingImmediateForUpdate(updateId);
+  },
+  hasPendingCleanupForUpdate(updateId){
+   if(typeof activeStore.hasPendingCleanupForUpdate!=='function')fail('BOT_STORE_CAPABILITY_MISSING');
+   return activeStore.hasPendingCleanupForUpdate(updateId);
   }
  };
 }

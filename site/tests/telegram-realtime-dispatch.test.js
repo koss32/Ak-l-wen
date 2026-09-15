@@ -60,16 +60,15 @@ test('a valid button click renders the replacement and schedules delayed interfa
   const method=url.split('/').at(-1),body=JSON.parse(options.body);deliveries.push({method,body});
   return {status:200,json:async()=>({ok:true,result:['answerCallbackQuery','deleteMessage'].includes(method)?true:{message_id:deliveries.length}})};
  };
- const handler=createWebhookHandler({env:value,createRuntime:runtimeEnv=>directRuntime(runtimeEnv,store,transport,()=>now)});
+ const handler=createWebhookHandler({env:value,sleep:async()=>{now=2500;},createRuntime:runtimeEnv=>directRuntime(runtimeEnv,store,transport,()=>now)});
  const update={update_id:441,callback_query:{id:'query-441',from:{id:11},data:'cmd:menu',message:{message_id:73,chat:{id:11,type:'private'}}}};
  const result=await invoke(handler,update,value);
  assert.equal(result.statusCode,200);
- assert.deepEqual(deliveries.map(item=>item.method),['answerCallbackQuery','sendMessage']);
+ assert.deepEqual(deliveries.map(item=>item.method),['answerCallbackQuery','sendMessage','deleteMessage']);
  assert.match(deliveries[1].body.text,/Bitte wähle eine Aktion/);
  const cleanup=Object.values((await store.inspect()).outbox).find(item=>item.method==='deleteMessage');
- assert.equal(cleanup.state,'queued');assert.equal(cleanup.notBefore,2500);
- now=2500;await drainTelegramOutbox({store,token:'test-token',timeoutMs:2000,maxDurationMs:6000,fetchImpl:transport,monotonicNow:()=>now});
- assert.equal(deliveries.at(-1).method,'deleteMessage');assert.deepEqual(deliveries.at(-1).body,{chat_id:'11',message_id:73});
+ assert.equal(cleanup.state,'sent');assert.equal(cleanup.notBefore,2500);
+ assert.deepEqual(deliveries.at(-1).body,{chat_id:'11',message_id:73});
  assert.ok(Object.values((await store.inspect()).outbox).filter(item=>item.sourceUpdateId==='441').every(item=>item.state==='sent'));
 });
 

@@ -83,8 +83,9 @@ test('a changed consent configuration stops the flow before contact collection a
  await ready.handle(cb(6,10,await button(store,'VALSET')));
  await ready.handle(cb(7,10,await button(store,'Junior · 5–8 лет')));
  await ready.handle(cb(8,10,await button(store,'Согласен/согласна')));
- await ready.handle(cb(9,10,await button(store,'Взрослый участник')));
- await ready.handle(msg(10,10,'/nonsense'));
+ await ready.handle(cb(9,10,await button(store,'Ребёнок / несовершеннолетний')));
+ await ready.handle(cb(10,10,await button(store,'Родитель')));
+ await ready.handle(msg(11,10,'/nonsense'));
  assert.equal((await store.getSession('10')).stage,'contactName');
  assert.match((await last(store)).text,/Неизвестная команда/);
 });

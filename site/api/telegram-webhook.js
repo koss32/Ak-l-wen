@@ -3,6 +3,7 @@ import {createBotRuntime} from '../server/bot-runtime.js';
 import {assessBotConfig,validPublicOrigin} from '../server/bot-config.js';
 export const config={api:{bodyParser:false}};
 const LIMIT=128*1024;
+const INTERFACE_CLEANUP_DELAY_MS=2500;
 const json=(res,status,body)=>{res.setHeader('Cache-Control','no-store');res.status(status).json(body);};
 const scalar=value=>typeof value==='string'?value:'';
 
@@ -40,7 +41,7 @@ export function telegramUpdateKind(update){
 }
 export function validTelegramUpdate(update){return telegramUpdateKind(update)!=='invalid';}
 
-export function createWebhookHandler({env=process.env,createRuntime=createBotRuntime}={}){
+export function createWebhookHandler({env=process.env,createRuntime=createBotRuntime,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}){
  return async function handler(req,res){
   if(req.method!=='POST')return json(res,405,{ok:false,code:'method'});
   const checked=assessBotConfig(env,{requireEnabled:true,requireWebhook:true,requireRedis:false});
@@ -64,6 +65,12 @@ export function createWebhookHandler({env=process.env,createRuntime=createBotRun
    try{
     await runtime.drain({limit:10,maxDurationMs:WEBHOOK_DRAIN_BUDGET_MS,sourceUpdateId:update.update_id});
     if(await runtime.hasPendingImmediateForUpdate(update.update_id))return json(res,503,{ok:false,code:'retry'});
+    // Cleanup is deliberately delayed so Telegram users can see the transition.
+    // Run it inside this invocation rather than waiting for the minute worker;
+    // a failed cleanup remains recoverable by that worker.
+    if(typeof runtime.hasPendingCleanupForUpdate==='function'&&await runtime.hasPendingCleanupForUpdate(update.update_id)){
+     try{await sleep(INTERFACE_CLEANUP_DELAY_MS);await runtime.drain({limit:10,maxDurationMs:5000,sourceUpdateId:update.update_id,includeBackground:true});}catch{/* keep the cleanup queued for worker recovery */}
+    }
    }catch{return json(res,503,{ok:false,code:'retry'});}
    return json(res,200,{ok:true,dropped:Boolean(result?.dropped)});
   }catch{return json(res,503,{ok:false,code:'retry'});}

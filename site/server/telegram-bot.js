@@ -84,9 +84,9 @@ function clientAction(tx,q,a,cfg){const chat=q.message.chat,user=q.from,s=sessio
  if(a.scope!=='client'||s.revision!==a.sessionRevision||s.stage!==a.stage){send(tx,chat.id,t(l,'stale'));return;}if(!activeBookingReady(s,cfg)){bookingChanged(tx,chat.id,l,cfg);return;}
  if(a.type==='program'){const p=programs.find(x=>x.id===a.value);if(!p)return;const next=putStage(tx,chat.id,s,'group',{programId:p.id});send(tx,chat.id,t(l,'choose'),addButtons(tx,next,p.groupIds.map(value=>[{text:groupLabel(l,value),action:{type:'group',value}}])));return;}
  if(a.type==='group'){const g=groups.find(x=>x.id===a.value&&x.programId===s.programId);if(!g)return;const next=putStage(tx,chat.id,s,'consent',{groupId:g.id,consentNoticeVersion:cfg.consentVersion});send(tx,chat.id,`${t(l,'privacy')}\n${cfg.privacyUrl}\nVersion: ${cfg.consentVersion}`,addButtons(tx,next,[[{text:t(l,'consent'),action:{type:'consent',consentVersion:cfg.consentVersion}}]]));return;}
- if(a.type==='consent'){if(a.consentVersion!==cfg.consentVersion||s.consentNoticeVersion!==a.consentVersion){bookingChanged(tx,chat.id,l,cfg);return;}const next=putStage(tx,chat.id,s,'personType',{consentedAt:tx.now,consentVersion:a.consentVersion});send(tx,chat.id,t(l,'choose'),addButtons(tx,next,[[{text:t(l,'adult'),action:{type:'type',value:'adult'}}],[{text:t(l,'minor'),action:{type:'type',value:'minor'}}]]));return;}
- if(a.type==='type'){if(!['adult','minor'].includes(a.value))return;if(a.value==='minor'){const next=putStage(tx,chat.id,s,'guardian',{personType:'minor'});send(tx,chat.id,t(l,'guardian'),addButtons(tx,next,[[{text:t(l,'parent'),action:{type:'guardian',value:'parent'}}],[{text:t(l,'representative'),action:{type:'guardian',value:'representative'}}],[{text:t(l,'legalGuardian'),action:{type:'guardian',value:'guardian'}}]]));}else{putStage(tx,chat.id,s,'contactName',{personType:'adult'});send(tx,chat.id,t(l,'contactName'));}return;}
- if(a.type==='guardian'){if(!['parent','representative','guardian'].includes(a.value))return;putStage(tx,chat.id,s,'contactName',{guardianRole:a.value});send(tx,chat.id,t(l,'contactName'));return;}
+ if(a.type==='consent'){if(a.consentVersion!==cfg.consentVersion||s.consentNoticeVersion!==a.consentVersion){bookingChanged(tx,chat.id,l,cfg);return;}const next=putStage(tx,chat.id,s,'personType',{consentedAt:tx.now,consentVersion:a.consentVersion}),g=groups.find(item=>item.id===s.groupId&&item.programId===s.programId),choices=[];if(g&&(g.maxAge===null||g.maxAge>=18))choices.push([{text:t(l,'adult'),action:{type:'type',value:'adult'}}]);if(g&&g.minAge<18)choices.push([{text:t(l,'minor'),action:{type:'type',value:'minor'}}]);send(tx,chat.id,t(l,'choose'),addButtons(tx,next,choices));return;}
+ if(a.type==='type'){const g=groups.find(item=>item.id===s.groupId&&item.programId===s.programId),allowedAdult=Boolean(g&&(g.maxAge===null||g.maxAge>=18)),allowedMinor=Boolean(g&&g.minAge<18);if(a.value==='adult'&&!allowedAdult||a.value==='minor'&&!allowedMinor)return;if(!['adult','minor'].includes(a.value))return;if(a.value==='minor'){const next=putStage(tx,chat.id,s,'guardian',{personType:'minor'});send(tx,chat.id,t(l,'guardian'),addButtons(tx,next,[[{text:t(l,'parent'),action:{type:'guardian',value:'parent'}}],[{text:t(l,'representative'),action:{type:'guardian',value:'representative'}}],[{text:t(l,'legalGuardian'),action:{type:'guardian',value:'guardian'}}]]));}else{putStage(tx,chat.id,s,'contactName',{personType:'adult'});send(tx,chat.id,t(l,'contactName'),undefined,'message',{link_preview_options:{is_disabled:true}});}return;}
+ if(a.type==='guardian'){if(!['parent','representative','guardian'].includes(a.value))return;putStage(tx,chat.id,s,'contactName',{guardianRole:a.value});send(tx,chat.id,t(l,'contactName'),undefined,'message',{link_preview_options:{is_disabled:true}});return;}
  if(a.type==='schedule'){const g=groups.find(x=>x.id===s.groupId);if(a.value&&!g?.scheduleIds.includes(a.value))return;putStage(tx,chat.id,s,'comment',{scheduleId:a.value});send(tx,chat.id,t(l,'comment'));return;}
  if(a.type==='submit'){if(!validateDomain(s,cfg)){bookingChanged(tx,chat.id,l,cfg);return;}const reminderOptIn=a.reminders===true;const saved=tx.createRequest({id:tx.nextRequestId(),clientChatId:String(chat.id),clientUserId:String(user.id),locale:l,status:'pending',programId:s.programId,groupId:s.groupId,scheduleId:s.scheduleId||'',personType:s.personType,contactName:s.contactName,participantName:s.participantName,age:s.age,guardianRole:s.guardianRole||'',comment:s.comment||'',consentVersion:s.consentVersion,consentedAt:s.consentedAt,reminders:{enabled:reminderOptIn},appointment:null});tx.putClient(user.id,{requestId:saved.id,locale:l});tx.putSession(chat.id,{locale:l,stage:'submitted',requestId:saved.id});queueCurrentStaffCard(tx,saved,cfg);send(tx,chat.id,t(l,'received'));}}
 function staffAction(tx,q,a,cfg){const chat=q.message.chat,user=q.from,l=staffLocale(tx,user);if(!staffAllowed(cfg,chat,user))return;const r=tx.getRequest(a.requestId);if(!r||r.appointmentRevision!==a.appointmentRevision){send(tx,chat.id,t(l,'staffStaleCard'));return;}const key=`staff:${chat.id}:${user.id}`;
@@ -121,7 +121,7 @@ export function createTelegramBot({store,config={},verifyStaffMembership=async()
  return {handle,formatAppointment:dateFormat,infoOnly:!bookingReady(cfg)};
 }
 
-export async function drainTelegramOutbox({store,token,workerId='worker',fetchImpl=fetch,limit=50,timeoutMs=8000,maxDurationMs=15000,monotonicNow=()=>performance.now(),sourceUpdateId}={}){
+export async function drainTelegramOutbox({store,token,workerId='worker',fetchImpl=fetch,limit=50,timeoutMs=8000,maxDurationMs=15000,monotonicNow=()=>performance.now(),sourceUpdateId,includeBackground=false}={}){
  if(!store||typeof store.leaseNext!=='function')throw new Error('Telegram store missing');
  if(!token)throw new Error('Telegram token missing');
  if(!Number.isInteger(limit)||limit<1)throw new Error('Telegram drain limit invalid');
@@ -137,14 +137,14 @@ export async function drainTelegramOutbox({store,token,workerId='worker',fetchIm
  while(count<limit){
   // Never start a request unless its entire timeout and a small finish margin fit.
   if(monotonicNow()-started+leaseMs>maxDurationMs)break;
-  const leased=await store.leaseNext(workerId,leaseMs,direct?{sourceUpdateId,immediateOnly:true}:undefined);
+  const leased=await store.leaseNext(workerId,leaseMs,direct?{sourceUpdateId,immediateOnly:!includeBackground}:undefined);
   if(!leased)break;
   const item=await store.beginDelivery(leased.id,leased.lease.fence,leaseMs);
   if(!item){count++;continue;}
   let result;
   try{
    const method=item.method||'sendMessage';
-   const payload=['answerCallbackQuery','deleteMessage'].includes(method)?item.payload:{chat_id:item.recipient,text:item.text,...(item.meta?.reply_markup?{reply_markup:item.meta.reply_markup}:{})};
+   const payload=['answerCallbackQuery','deleteMessage'].includes(method)?item.payload:{chat_id:item.recipient,text:item.text,...(item.meta?.reply_markup?{reply_markup:item.meta.reply_markup}:{}),...(item.meta?.link_preview_options?{link_preview_options:item.meta.link_preview_options}:{})};
    const response=await fetchImpl(`https://api.telegram.org/bot${token}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(timeoutMs)});
    let body;try{body=await response.json();}catch{body=null;}
    result=classifyTelegramResponse(response,body,method);

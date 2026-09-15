@@ -8,7 +8,8 @@
   "functions": {
     "api/trial-requests.js": { "maxDuration": 30 },
     "api/telegram-webhook.js": { "maxDuration": 30 },
-    "api/telegram-worker.js": { "maxDuration": 30 }
+    "api/telegram-worker.js": { "maxDuration": 30 },
+    "api/telegram-ops.js": { "maxDuration": 30 }
   },
   "headers": [
     {

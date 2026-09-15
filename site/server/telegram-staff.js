@@ -29,7 +29,7 @@ export function createStaffMembershipVerifier({token,fetchImpl=fetch,timeoutMs=2
    const body=await response.json();
    const member=body?.result;
    if(!record(body)||body.ok!==true||!record(member)||!statuses.has(member.status)||!record(member.user)||!Number.isSafeInteger(member.user.id)||member.user.id<=0)throw unavailable();
-   if(member.user.is_bot!==undefined&&typeof member.user.is_bot!=='boolean')throw unavailable();
+   if(typeof member.user.is_bot!=='boolean')throw unavailable();
    if(member.user.id!==user||member.user.is_bot===true)return false;
    if(member.status==='restricted')return member.is_member===true;
    return member.status==='creator'||member.status==='administrator'||member.status==='member';

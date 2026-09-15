@@ -42,6 +42,7 @@ export function assessBotConfig(env=process.env,{requireEnabled=false,requireWeb
  const workerEnabled=flag(env,'BOT_WORKER_ENABLED');
  const userIds=parseStaffUserIds(env.TELEGRAM_STAFF_USER_IDS);
  const staffChatId=text(env.TELEGRAM_STAFF_CHAT_ID);
+ const staffAuthMode=text(env.TELEGRAM_STAFF_AUTH_MODE)||'allowlist';
  const redisUrl=text(env.UPSTASH_REDIS_REST_URL)||text(env.KV_REST_API_URL);
  const redisToken=text(env.UPSTASH_REDIS_REST_TOKEN)||text(env.KV_REST_API_TOKEN);
  const timeoutMs=Number(env.TELEGRAM_SEND_TIMEOUT_MS||8000);
@@ -56,7 +57,9 @@ export function assessBotConfig(env=process.env,{requireEnabled=false,requireWeb
  if(requireRedis&&(!redisUrl||!redisToken))errors.push('BOT_REDIS_MISSING');
  if(requireRedis&&redisUrl&&validPublicOrigin(redisUrl)?.protocol!=='https:')errors.push('BOT_REDIS_URL_INVALID');
  if(env.BOT_REDIS_PREFIX&&(!/\{[^{}]+\}/.test(env.BOT_REDIS_PREFIX)||env.BOT_REDIS_PREFIX.length>128))errors.push('BOT_REDIS_PREFIX_INVALID');
+ if(!['allowlist','group_members'].includes(staffAuthMode))errors.push('BOT_STAFF_AUTH_MODE_INVALID');
  if(!userIds.ok)errors.push('BOT_STAFF_USER_IDS_INVALID');
+ if(staffAuthMode==='group_members'&&staffChatId&&(!validStaffChatId(staffChatId)||Number(staffChatId)>=0))errors.push('BOT_STAFF_GROUP_ID_INVALID');
  if(staffChatId&&!validStaffChatId(staffChatId))errors.push('BOT_STAFF_CHAT_ID_INVALID');
  if(!validTimeout(timeoutMs))errors.push('BOT_TIMEOUT_INVALID');
  if(privacyUrl&&!privacy)errors.push('BOT_PRIVACY_URL_INVALID');
@@ -78,8 +81,8 @@ export function assessBotConfig(env=process.env,{requireEnabled=false,requireWeb
   if(!botToken)errors.push('BOT_TOKEN_MISSING');
  }
  const workerReady=workerEnabled&&safeSecret(workerSecret)&&Boolean(botToken)&&validTimeout(timeoutMs)&&(!requireRedis||Boolean(redisUrl&&redisToken));
- const bookingReady=legal.publicationStatus==='published'&&text(env.PRIVACY_PUBLICATION_STATUS)==='published'&&text(env.PRIVACY_CONSENT_VERSION)===legal.consentVersion&&Boolean(privacy)&&workerReady&&userIds.ok&&userIds.ids.length>0&&validStaffChatId(staffChatId);
- return {ok:errors.length===0,errors:[...new Set(errors)],enabled,webhookEnabled,workerEnabled,origin,privacyUrl:privacy?.href||'',timeoutMs,userIds:userIds.ids,staffChatId,workerReady,bookingReady};
+ const bookingReady=legal.publicationStatus==='published'&&text(env.PRIVACY_PUBLICATION_STATUS)==='published'&&text(env.PRIVACY_CONSENT_VERSION)===legal.consentVersion&&Boolean(privacy)&&workerReady&&userIds.ok&&validStaffChatId(staffChatId)&&(staffAuthMode==='group_members'?Number(staffChatId)<0:staffAuthMode==='allowlist'&&userIds.ids.length>0);
+ return {ok:errors.length===0,errors:[...new Set(errors)],enabled,webhookEnabled,workerEnabled,origin,privacyUrl:privacy?.href||'',timeoutMs,userIds:userIds.ids,staffChatId,staffAuthMode,workerReady,bookingReady};
 }
 
 export const isValidTelegramSecret=safeSecret;

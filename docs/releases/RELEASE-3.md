@@ -26,17 +26,16 @@ Release 2 остаётся утверждённой Production-базой лен
 - Защищённые webhook/worker, Redis/outbox и runtime-валидация.
 - Telegram Privacy notice опубликован на Preview.
 - Проверка членства сотрудника через `getChatMember` подключена к runtime и staff handler: numeric allowlist + назначенная group/supergroup + актуальное членство. Ошибка проверки закрывает доступ.
-- Добавлены handler/runtime regression tests этой проверки; они ещё не запускались после доработки.
+- Добавлены handler/runtime regression tests этой проверки; локально выполнены `npm ci`, `npm test` (142 passed), `npm run lint` и `npm run build` на текущем snapshot.
+- Добавлен защищённый Preview-only диагностический endpoint Telegram runtime; он не выдаёт secrets и не выполняет mutations.
 - Лимит webhook увеличен до 30 секунд для membership preflight и ограниченного outbox drain.
 
 ## Не завершено
 
-- Не выбрана и не привязана окончательная группа тренеров.
-- Не подтверждён окончательный список сотрудников с правами confirm/reschedule/cancel.
-- Staff membership validation подключена в коде, но ещё не проверена финальными тестами и реальными Telegram updates.
-- Не завершён minute-trigger для worker.
-- Не завершена финальная Preview runtime-конфигурация.
-- Финальные tests/lint/build текущего Release 3 ещё не выполнены.
+- Telegram подтвердил актуальную trainer supergroup и права бота администратора; привязка Preview runtime должна использовать её текущий Telegram ID, а не исторический ID до миграции.
+- Staff membership validation покрыта финальными локальными тестами, но реальными Telegram updates на Release-3 Preview ещё не подтверждена.
+- Существующий minute-trigger остаётся выключенным до завершения deployment и E2E.
+- Нужна финальная сверка Preview runtime configuration с Doppler и существующим Vercel KV без замены Redis credentials.
 - Реальный end-to-end Preview-flow ещё не подтверждён.
 
 ## Что нужно сделать для завершения Release 3

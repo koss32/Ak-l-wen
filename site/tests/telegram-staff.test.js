@@ -43,7 +43,7 @@ test('departed, kicked and non-human users are denied regardless of membership f
 
 test('the returned identity must match the requested user',async()=>{
  assert.equal(await verifierFor(member('member',{user:{id:56,is_bot:false}}))(chatId,userId),false);
- assert.equal(await verifierFor(member('member',{user:{id:userId}}))(chatId,userId),true);
+ await assertUnavailable(verifierFor(member('member',{user:{id:userId}}))(chatId,userId));
 });
 
 test('each staff action checks fresh membership without caching',async()=>{

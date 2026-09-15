@@ -33,7 +33,7 @@ test('/stop disables care for every retained client request and clears personal-
 });
 
 test('status exposes all sibling requests, protects IDs, and preserves comment line breaks in staff evidence',async()=>{
- const store=createMemoryBotStore(),bot=createTelegramBot({store,config:cfg});
+ const store=createMemoryBotStore(),bot=createTelegramBot({store,config:cfg,verifyStaffMembership:async()=>true});
  await createRecord(store,{id:'first',status:'confirmed'});
  await createRecord(store,{id:'second',status:'pending'});
  await saveRussian(store,11);
@@ -47,7 +47,7 @@ test('status exposes all sibling requests, protects IDs, and preserves comment l
 });
 
 test('staff preview can only be committed by the composing staff user and expires after a newer composition',async()=>{
- const store=createMemoryBotStore(),bot=createTelegramBot({store,config:cfg});
+ const store=createMemoryBotStore(),bot=createTelegramBot({store,config:cfg,verifyStaffMembership:async()=>true});
  await createRecord(store,{id:'staff-request'});
  await bot.handle(msg(1,99,'/staff staff-request',55,'group'));
  const reply=await button(store,'Antwort verfassen');

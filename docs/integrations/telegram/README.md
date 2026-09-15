@@ -18,12 +18,12 @@ Telegram обеспечивает клиентский booking/status flow и st
 - Redis/outbox;
 - защищённые webhook/worker endpoints;
 - Preview Privacy notice;
-- модуль проверки членства staff в trainer group.
+- модуль проверки членства staff в trainer group подключён к runtime и handler; новые regression tests ещё не запускались.
 
 Осталось:
 
 1. подтвердить trainer group и authorized staff;
-2. подключить membership validation к staff handler;
+2. проверить подключённую membership validation в финальных тестах и реальном staff flow;
 3. настроить один authenticated minute worker trigger;
 4. завершить Preview runtime configuration;
 5. выполнить финальные tests/lint/build всего Release 3;

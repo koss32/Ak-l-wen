@@ -14,7 +14,7 @@ const action=async(store,type)=>{const entry=Object.entries((await store.inspect
 async function fixture({confirmed=false}={}){
  let now=Date.parse('2026-09-14T10:00:00Z');
  const store=createMemoryBotStore({clock:()=>now});
- const bot=createTelegramBot({store,config});
+ const bot=createTelegramBot({store,config,verifyStaffMembership:async()=>true});
  await store.transactUpdate('locale-ru-10',tx=>tx.putClient(10,{locale:'ru'}));
  const record=await store.createBooking({id:'review-request',clientUserId:'10',clientChatId:'10',locale:'ru',status:confirmed?'confirmed':'pending',appointment:confirmed?now+2*86400000:null,reminders:{enabled:false},personType:'adult',contactName:'Test Adult',participantName:'Test Adult',age:25,programId:'boxen',groupId:'box-15',scheduleId:'',comment:'',consentVersion:legal.consentVersion,consentedAt:now});
  return {store,bot,record,advance:ms=>{now+=ms;}};

@@ -25,13 +25,15 @@ Release 2 остаётся утверждённой Production-базой лен
 - FAQ, запись, статус, отмена и staff-действия.
 - Защищённые webhook/worker, Redis/outbox и runtime-валидация.
 - Telegram Privacy notice опубликован на Preview.
-- Подготовлена проверка членства сотрудника в заданной Telegram-группе через `getChatMember`.
+- Проверка членства сотрудника через `getChatMember` подключена к runtime и staff handler: numeric allowlist + назначенная group/supergroup + актуальное членство. Ошибка проверки закрывает доступ.
+- Добавлены handler/runtime regression tests этой проверки; они ещё не запускались после доработки.
+- Лимит webhook увеличен до 30 секунд для membership preflight и ограниченного outbox drain.
 
 ## Не завершено
 
 - Не выбрана и не привязана окончательная группа тренеров.
 - Не подтверждён окончательный список сотрудников с правами confirm/reschedule/cancel.
-- Staff membership validation ещё нужно подключить к обработчику.
+- Staff membership validation подключена в коде, но ещё не проверена финальными тестами и реальными Telegram updates.
 - Не завершён minute-trigger для worker.
 - Не завершена финальная Preview runtime-конфигурация.
 - Финальные tests/lint/build текущего Release 3 ещё не выполнены.
@@ -40,7 +42,7 @@ Release 2 остаётся утверждённой Production-базой лен
 ## Что нужно сделать для завершения Release 3
 
 1. Настроить trainer group и staff access.
-2. Подключить membership validation.
+2. Проверить подключённую membership validation после подтверждения группы и staff allowlist.
 3. Настроить защищённый scheduler/worker trigger.
 4. Завершить Preview runtime variables.
 5. Выполнить финальные tests/lint/build всего приложения.

@@ -8,7 +8,7 @@ Privacy notice уже опубликован на `https://ak-loewen-bot-preview
 
 1. Подтвердить trainer group и сотрудников с правами confirm/reschedule/cancel.
 2. Сохранить numeric group chat ID только в защищённой runtime-конфигурации.
-3. Интегрировать `site/server/telegram-staff.js` в staff handler.
+3. Проверить подключённый `site/server/telegram-staff.js` в runtime/staff handler. Бот должен быть администратором trainer group: Telegram гарантирует `getChatMember` для других пользователей только в этом случае. Allowlist не расширять; членство перепроверяется перед каждым staff-действием.
 4. Проверить Preview Redis/webhook/worker configuration без изменения Production.
 5. Установить Privacy runtime variables из `SETUP.md`.
 6. Создать или использовать ровно один authenticated minute trigger для `/api/telegram-worker/`.

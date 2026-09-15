@@ -3,6 +3,7 @@ import {createMemoryBotStore,createUpstashBotStore} from './bot-store.js';
 import {createTelegramBot,drainTelegramOutbox} from './telegram-bot.js';
 import {assessBotConfig,isValidTelegramTimeout} from './bot-config.js';
 import {legal} from '../src/data.js';
+import {createStaffMembershipVerifier} from './telegram-staff.js';
 
 const fail=code=>{throw new Error(code);};
 const positiveInteger=(value,name,{min=1,max=1000}={})=>{
@@ -33,7 +34,12 @@ export function createBotRuntime(env=process.env,{store,fetchImpl=fetch}={}){
   privacyStatus:env.PRIVACY_PUBLICATION_STATUS||'pending',
   consentVersion:env.PRIVACY_CONSENT_VERSION||legal.consentVersion
  };
- const bot=createTelegramBot({store:activeStore,config});
+ const verifyStaffMembership=createStaffMembershipVerifier({
+  token:env.TELEGRAM_BOT_TOKEN,
+  fetchImpl,
+  timeoutMs:Math.min(2000,checked.timeoutMs)
+ });
+ const bot=createTelegramBot({store:activeStore,config,verifyStaffMembership});
  return {
   bot,
   store:activeStore,

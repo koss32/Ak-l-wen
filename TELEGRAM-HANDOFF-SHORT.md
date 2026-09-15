@@ -1,28 +1,36 @@
-# Telegram — короткая передача (2026-09-15)
+# Release 3 — Telegram bot (WIP)
 
-**Ветка:** `feature/telegram-native-care-2026-09-14`
+**Рабочая ветка:** `release-3`
 
-**Последний исходный commit:** `7e26fb432350c80b6789840734263d2b9c0109a9`
+**Статус:** текущая версия разработки Telegram-бота. Это ещё не Production-релиз: финальная настройка, проверки и реальный Preview-flow не завершены.
 
-**Статус:** локальные изменения не закоммичены и не запушены; Production не менялся.
+## Что уже готово
 
-## Готово локально
+- Telegram-бот с DE/RU/UK/TR.
+- Немецкий язык по умолчанию.
+- Кнопочное меню, FAQ и запись на тренировку.
+- Статусы заявки и staff-действия.
+- Redis/outbox, защищённые webhook и worker.
+- Privacy notice опубликован на Preview: `https://ak-loewen-bot-preview.vercel.app/telegram-privacy/`.
+- Подготовлен `site/server/telegram-staff.js` для проверки действующего членства сотрудника в нужной Telegram-группе.
 
-- Telegram-бот: DE/RU/UK/TR, первый язык DE, меню-кнопки, FAQ, заявка, статусы, staff-действия, Redis/outbox, webhook/worker защита.
-- Privacy notice опубликован только на Preview: `https://ak-loewen-bot-preview.vercel.app/telegram-privacy/` (version `telegram-2026-09-15-v1`).
-- Добавлен `site/server/telegram-staff.js`: безопасная проверка **текущего** членства сотрудника в заданной группе через Telegram `getChatMember`; модуль пока не подключён к обработчику.
-- Документы активации: `START-HERE.md`, `operations/telegram-preview-activation.md`.
+## Что осталось завершить в Release 3
 
-## Важно перед включением
+1. Привязать нужную Telegram-группу тренеров и определить сотрудников, которым разрешены действия с заявками.
+2. Подключить `telegram-staff.js` к обработчику.
+3. Настроить один защищённый minute-trigger для `https://ak-loewen-bot-preview.vercel.app/api/telegram-worker/`.
+4. Завершить Preview runtime-конфигурацию Privacy/worker, не включая отдельную форму сайта.
+5. Выполнить финальные tests/lint/build.
+6. Провести один реальный Preview-flow: запись → подтверждение тренером → статус/отмена → опциональное напоминание.
 
-1. Добавить бота `@ak_loewenbot` в группу владельца и выдать ему минимальные admin-права: Telegram гарантирует `getChatMember` для других участников только администратору бота.
-2. Получить фактический numeric group chat ID через защищённый webhook-update; invite-link и IDs не хранить в Git.
-3. Интегрировать `telegram-staff.js` так, чтобы действия разрешались только текущим людям из **этой** группы. Не разрешать по username и не расширять allowlist автоматически.
-4. В cron-job.org создать ровно один disabled job: POST раз в минуту на `https://ak-loewen-bot-preview.vercel.app/api/telegram-worker/`, с `Authorization: Bearer <TELEGRAM_WORKER_SECRET>` только в header. Секреты не писать в код/чат/ZIP.
-5. Только после Preview runtime + cron + group binding выполнить финальные tests/lint/build и один реальный Preview flow. До этого intake не включать.
+## Структура релизов
 
-## Проверки
+- **Release 2** — утверждённая версия сайта. Не изменять в рамках Telegram-доработки.
+- **Release 3** — текущая Telegram-версия, работа продолжается в `release-3`.
+- Следующий номер релиза назначается только после появления следующего отдельного набора изменений; заранее `Release 4` не создаётся.
 
-По прежнему указанию владельца финальные tests/lint/build/live Telegram flow **не запускались**. Исторические результаты не подтверждают эти изменения.
+## Для следующего исполнителя
 
-Открыть сначала: `START-HERE.md`, затем `operations/telegram-preview-activation.md`, затем `site/server/bot-config.js`.
+Начать с `RELEASE-3.md`, затем открыть `operations/telegram-preview-activation.md` и `site/server/bot-config.js`.
+
+Технические commit SHA сохраняются в Git только для истории и диагностики. В рабочем общении ориентироваться на названия **Release 2 / Release 3**.

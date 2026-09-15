@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createMemoryBotStore} from '../server/bot-store.js';
+import {createTelegramBot} from '../server/telegram-bot.js';
+const message=(id,text)=>({update_id:id,message:{chat:{id:10,type:'private'},from:{id:10,language_code:'ru'},text}});
+const callback=(id,data)=>({update_id:id,callback_query:{id:`navigation-${id}`,from:{id:10},data,message:{chat:{id:10,type:'private'}}}});
+const latest=async store=>Object.values((await store.inspect()).outbox).filter(x=>x.method==='sendMessage').at(-1);
+const buttons=x=>x.meta.reply_markup.inline_keyboard.flat();
+test('Sprache opens a separate selector; back preserves a draft; My requests is accessible',async()=>{
+ const store=createMemoryBotStore(),bot=createTelegramBot({store});
+ await store.transactUpdate('locale-ru-10',tx=>tx.putClient(10,{locale:'ru'}));
+ await bot.handle(message(1,'/start'));
+ const main=buttons(await latest(store));
+ assert.equal(main.filter(x=>x.callback_data.startsWith('cmd:lang:')).length,0);
+ assert.deepEqual(main.find(x=>x.callback_data==='cmd:language'),{text:'🌐 Sprache',callback_data:'cmd:language'});
+ assert.ok(main.some(x=>x.callback_data==='cmd:status'&&x.text==='📋 Мои заявки'));
+ await store.transactUpdate(2,tx=>tx.putSession(10,{locale:'ru',stage:'comment',contactName:'Existing Draft'}));
+ await bot.handle(callback(3,'cmd:language'));
+ const selector=buttons(await latest(store));
+ assert.equal(selector.filter(x=>x.callback_data.startsWith('cmd:lang:')).length,4);
+ assert.ok(selector.some(x=>x.callback_data==='cmd:menu'));
+ await bot.handle(callback(4,'cmd:menu'));
+ assert.equal((await store.getSession(10)).contactName,'Existing Draft');
+ await bot.handle(callback(5,'cmd:status'));
+ assert.equal((await latest(store)).text,'Заявок не найдено.');
+});

@@ -1,0 +1,36 @@
+{
+  "recordedAt": "2026-09-15T12:33:17.057306+00:00",
+  "project": "ak-loewen-release-a",
+  "environment": "preview",
+  "branch": "feature/telegram-native-care-2026-09-14",
+  "baseCommit": "7e26fb432350c80b6789840734263d2b9c0109a9",
+  "sourceState": "uncommitted local continuation",
+  "noticeDeploymentId": "dpl_ZxsFBQT55SUqysjn3joQitYVmowQ",
+  "noticeDeploymentState": "READY",
+  "previousPreviewDeploymentId": "dpl_664VzZET6yDRWkT1EqheUgkjtbzZ",
+  "privacyUrl": "https://ak-loewen-bot-preview.vercel.app/telegram-privacy/",
+  "consentVersion": "telegram-2026-09-15-v1",
+  "publicationHttpStatus": 200,
+  "approvedDocumentSha256": "b19abfa963c1fb938775bb2b86279c82ffe58056491a1fe442755f6add1d4ce9",
+  "publishedDocumentMatchesSource": true,
+  "noticeStageSourceGate": "pending",
+  "localActivationSourceGate": "published",
+  "localUnpublishedChanges": [
+    "German default for new users; separate DE/RU/UK/TR language menu with saved choices",
+    "Button-based FAQ using approved first-visit and location copy"
+  ],
+  "ownerGoal": "Open working booking after final verification; trainer-group processing; no paid services without approval",
+  "trainerGroupConfiguration": "Pending exact group and authorized trainer identities; existing staff permissions unchanged",
+  "previewEnvironmentGate": "pending",
+  "staffConfiguration": "existing branch-scoped sensitive values preserved; not rotated or disclosed",
+  "scheduler": "not connected by this continuation; separate provider access required",
+  "githubPublished": false,
+  "productionModified": false,
+  "verification": {
+    "deploymentBuild": "Vercel READY",
+    "applicationTests": "not run; deferred by owner",
+    "lint": "not run",
+    "browserChecks": "not run",
+    "telegramEndToEnd": "not run"
+  }
+}

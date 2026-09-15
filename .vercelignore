@@ -1,8 +1,7 @@
 /.git
-/concepts
-/assets
-/references
 /docs
+/archive
+/tools
 site/node_modules
 site/.state
 site/.env*

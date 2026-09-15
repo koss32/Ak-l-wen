@@ -11,7 +11,7 @@ const live=legal.publicationStatus==='published'&&!!process.env.TELEGRAM_BOT_TOK
 const statePath=path.resolve(process.env.STATE_DIRECTORY||path.join(root,'.state'));
 await mkdir(statePath,{recursive:true});
 const trials=createTrialService({databasePath:path.join(statePath,'requests.sqlite'),token:process.env.TELEGRAM_BOT_TOKEN,chatId:process.env.TELEGRAM_CHAT_ID_AK,enabled:live});
-const types={'.css':'text/css','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'};
+const types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'};
 const server=http.createServer(async(req,res)=>{
  try{
  const url=new URL(req.url,'http://localhost');
@@ -29,6 +29,11 @@ const server=http.createServer(async(req,res)=>{
   const result=await trials.handle(data,req.socket.remoteAddress);return json(result.httpStatus,result.body);
  }
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);return res.end();}
+ if(url.pathname==='/telegram-privacy'){res.writeHead(308,{'Location':'/telegram-privacy/'});return res.end();}
+ if(url.pathname==='/telegram-privacy/'){
+  const html=await readFile(path.join(root,'public','telegram-privacy','index.html'),'utf8');
+  res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(req.method==='HEAD'?'':html);
+ }
  const match=url.pathname.match(/^\/(de|ru|uk|tr)\/(?:((?:impressum|datenschutz))\/)?$/);
  if(match){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});return res.end(req.method==='HEAD'?'':render(match[1],match[2],live,process.env.PUBLIC_ORIGIN||''));}
  const target=path.resolve(root,'public','.'+decodeURIComponent(url.pathname));

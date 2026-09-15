@@ -31,11 +31,13 @@ function runtimeEnv(){return {BOT_ENABLED:'true',BOT_WEBHOOK_ENABLED:'true',BOT_
  const bot=botWith(store,async()=>{lookups++;return true;});
  await bot.handle(message(1,'/staff request-1',GROUP,987));
  assert.equal(staffCards(await store.inspect()).length,1);
- const cancelEntry=Object.entries((await store.inspect()).actions).find(([,value])=>value.type==='staff-cancel');
- assert.ok(cancelEntry);
- await bot.handle(callback(2,`a:${cancelEntry[0]}`));
+ const rejectEntry=Object.entries((await store.inspect()).actions).find(([,value])=>value.type==='staff-reject');
+ assert.ok(rejectEntry);
+ await bot.handle(callback(2,`a:${rejectEntry[0]}`));
+ await bot.handle(message(3,'No available place this week'));
+ await bot.handle(callback(4,await action(store,'staff-reject-commit')));
  assert.equal((await store.getRequest('request-1')).status,'cancelled');
- assert.equal(lookups,2);
+ assert.equal(lookups,4);
  const deniedStore=createMemoryBotStore();await seed(deniedStore,'default-denied');
  await botWith(deniedStore,async()=>true,allowlistConfig).handle(message(1,'/staff default-denied',GROUP,987));
  assert.equal(staffCards(await deniedStore.inspect()).length,0);
@@ -84,25 +86,25 @@ test('group-members mode rechecks a newly joined staff member through confirm, r
  const bot=botWith(store,async()=>{lookups++;return true;});
 
  await bot.handle(message(1,'/staff membership-lifecycle'));
- await bot.handle(callback(2,await action(store,'staff-date')));
- await bot.handle(message(3,'2026-09-03T18:30:00+02:00'));
- await bot.handle(callback(4,await action(store,'staff-date-commit')));
+ await bot.handle(callback(2,await action(store,'staff-training')));
+ await bot.handle(callback(3,await action(store,'staff-training-commit')));
  assert.equal((await store.getRequest('membership-lifecycle')).status,'confirmed');
 
- await bot.handle(message(5,'/staff membership-lifecycle'));
- await bot.handle(callback(6,await action(store,'staff-date')));
- await bot.handle(message(7,'2026-09-04T18:30:00+02:00'));
- await bot.handle(callback(8,await action(store,'staff-date-commit')));
- assert.equal((await store.getRequest('membership-lifecycle')).appointment,Date.parse('2026-09-04T16:30:00Z'));
+ await bot.handle(message(4,'/staff membership-lifecycle'));
+ await bot.handle(callback(5,await action(store,'staff-training')));
+ await bot.handle(callback(6,await action(store,'staff-training-commit')));
+ assert.equal((await store.getRequest('membership-lifecycle')).appointment,Date.parse('2026-09-02T16:30:00Z'));
 
- await bot.handle(message(9,'/staff membership-lifecycle'));
- await bot.handle(callback(10,await action(store,'staff-reply')));
- await bot.handle(message(11,'Deterministic staff reply'));
- await bot.handle(callback(12,await action(store,'staff-reply-commit')));
+ await bot.handle(message(7,'/staff membership-lifecycle'));
+ await bot.handle(callback(8,await action(store,'staff-reply')));
+ await bot.handle(message(9,'Deterministic staff reply'));
+ await bot.handle(callback(10,await action(store,'staff-reply-commit')));
  assert.ok(clientMessages(await store.inspect()).some(item=>item.text.includes('Deterministic staff reply')));
 
- await bot.handle(message(13,'/staff membership-lifecycle'));
- await bot.handle(callback(14,await action(store,'staff-cancel')));
+ await bot.handle(message(11,'/staff membership-lifecycle'));
+ await bot.handle(callback(12,await action(store,'staff-reject')));
+ await bot.handle(message(13,'No available place this week'));
+ await bot.handle(callback(14,await action(store,'staff-reject-commit')));
  assert.equal((await store.getRequest('membership-lifecycle')).status,'cancelled');
  assert.equal(lookups,14,'membership is checked afresh for every group staff update');
 });
@@ -113,13 +115,13 @@ test('a member removed after opening a staff card is denied on the next group-me
  let lookups=0;
  const bot=botWith(store,async()=>++lookups===1);
  await bot.handle(message(1,'/staff removed-member'));
- const date=await action(store,'staff-date');
- await bot.handle(callback(2,date));
+ const training=await action(store,'staff-training');
+ await bot.handle(callback(2,training));
  const state=await store.inspect();
  assert.equal(lookups,2);
  assert.equal((await store.getRequest('removed-member')).status,'pending');
  assert.equal(state.sessions['staff:-10099:987'],undefined);
- assert.ok(Object.values(state.actions).some(value=>value.type==='staff-date'));
+ assert.ok(Object.values(state.actions).some(value=>value.type==='staff-training'));
  assert.equal(state.outbox[Object.keys(state.outbox).at(-1)].method,'answerCallbackQuery');
 });
 

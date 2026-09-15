@@ -19,6 +19,8 @@ Telegram обеспечивает клиентский booking/status flow и st
 - защищённые webhook/worker endpoints;
 - Preview Privacy notice;
 - модуль проверки членства staff в trainer group подключён к runtime и handler; локальные regression tests выполнены в составе полного набора.
+- В исходном коде `release-3` тренер выбирает подходящую регулярную тренировку кнопкой из расписания той группы, на которую поступила заявка. Бот рассчитывает ближайшее начало в `Europe/Berlin`; это время используется для подтверждения, статуса клиента и opt-in напоминания за два часа.
+- Тренер может отправить клиенту свободный текст через бота. При отклонении текст причины подтверждается перед доставкой, а заявка переводится в отменённый статус.
 
 Осталось:
 
@@ -27,5 +29,6 @@ Telegram обеспечивает клиентский booking/status flow и st
 3. сверить и включить существующий authenticated minute worker trigger только после E2E;
 4. завершить Preview runtime configuration и deployment;
 5. выполнить реальный end-to-end Preview flow.
+6. после следующего Preview deployment проверить реальными Telegram updates выбор тренировки, персональный ответ и персональный отказ.
 
 Документы: `SETUP.md`, `ACTIVATION.md`, `VERIFICATION.md`.

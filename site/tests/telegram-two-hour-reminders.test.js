@@ -28,13 +28,12 @@ async function bookWithOptIn(store,bot){
  await bot.handle(cb(id++,10,await button(store,'Отправить с напоминанием за 2 часа')));
  return id;
 }
-async function confirm(store,bot,id,requestId,iso){
+async function confirm(store,bot,id,requestId){
  await bot.handle(msg(id++,99,`/staff ${requestId}`,55,'group'));
  const card=sent(await store.inspect()).filter(item=>item.kind==='staff-card').at(-1);
- const dateButton=card.meta.reply_markup.inline_keyboard.flat().find(button=>/^Termin (bestätigen|ändern)$/.test(button.text));
- await bot.handle(cb(id++,99,dateButton.callback_data,55,'group'));
- await bot.handle(msg(id++,99,iso,55,'group'));
- await bot.handle(cb(id,99,await button(store,'Verbindlich bestätigen'),55,'group'));
+ const trainingButton=card.meta.reply_markup.inline_keyboard.flat().find(button=>/Training (bestätigen|ändern)/.test(button.text));
+ await bot.handle(cb(id++,99,trainingButton.callback_data,55,'group'));
+ await bot.handle(cb(id,99,await button(store,'Montag, Mittwoch, Freitag · 18:30–20:00 · Europe/Berlin'),55,'group'));
 }
 
 test('explicit opt-in schedules one two-hour reminder and confirmation includes cancel, disable, and map controls',async()=>{
@@ -43,10 +42,12 @@ test('explicit opt-in schedules one two-hour reminder and confirmation includes 
  const id=await bookWithOptIn(store,bot);
  const request=Object.values((await store.inspect()).requests)[0];
  assert.equal(request.reminders.enabled,true);
- await confirm(store,bot,id,request.id,'2026-09-03T12:00:00+02:00');
+ await confirm(store,bot,id,request.id);
  const state=await store.inspect(),reminders=Object.values(state.outbox).filter(item=>item.kind==='reminder');
  assert.equal(reminders.length,1);
- assert.equal(reminders[0].notBefore,Date.parse('2026-09-03T08:00:00Z'));
+ assert.equal(reminders[0].notBefore,Date.parse('2026-09-02T14:30:00Z'));
+ assert.match(reminders[0].text,/Напоминание о тренировке за 2 часа/);
+ assert.match(reminders[0].text,/Ближайшая тренировка/);
  assert.match(reminders[0].text,/Werwolf 8, 42651 Solingen/);
  assert.match(reminders[0].text,/Europe\/Berlin/);
  const controls=sent(state).filter(item=>item.recipient==='10').at(-1).meta.reply_markup.inline_keyboard.flat();
@@ -60,14 +61,14 @@ test('opt-out, stop, and rescheduling cancel obsolete two-hour reminders without
  const store=createMemoryBotStore({clock:()=>now}),bot=createTelegramBot({store,config:cfg,verifyStaffMembership:async()=>true});
  let id=await bookWithOptIn(store,bot);
  const request=Object.values((await store.inspect()).requests)[0];
- await confirm(store,bot,id,request.id,'2026-09-03T12:00:00+02:00');
+ await confirm(store,bot,id,request.id);
  id+=4;
  const first=Object.values((await store.inspect()).outbox).find(item=>item.kind==='reminder');
  await bot.handle(msg(id++,10,'/reminders'));
  await bot.handle(cb(id++,10,await button(store,'🔕 Выключить напоминания')));
  assert.equal((await store.inspect()).outbox[first.id].state,'cancelled');
  await bot.handle(msg(id++,10,'/reminders'));
- await confirm(store,bot,id,request.id,'2026-09-04T12:00:00+02:00');
+ await confirm(store,bot,id,request.id);
  id+=4;
  const state=await store.inspect(),current=Object.values(state.outbox).filter(item=>item.kind==='reminder'&&item.state==='queued');
  assert.equal(current.length,1);
@@ -85,7 +86,7 @@ test('localized map buttons use canonical URL and reminders are not created less
  for(const [locale,label] of Object.entries(labels)){
   const requestId=`locale-${locale}`,userId=String(100+id);
   await store.transactUpdate(`seed-${locale}`,tx=>tx.createRequest({id:requestId,clientChatId:userId,clientUserId:userId,locale,status:'pending',programId:'boxen',groupId:'box-15',scheduleId:'box-week',personType:'adult',contactName:'Adult Name',participantName:'Adult Name',age:21,guardianRole:'',comment:'',consentVersion:cfg.consentVersion,consentedAt:tx.now,reminders:{enabled:true},appointment:null}));
-  await confirm(store,bot,id,requestId,'2026-09-03T12:00:00+02:00');
+  await confirm(store,bot,id,requestId);
   id+=4;
   const confirmation=sent(await store.inspect()).filter(item=>item.recipient===userId).at(-1);
   const map=confirmation.meta.reply_markup.inline_keyboard.flat().find(button=>button.text===label);
@@ -93,6 +94,7 @@ test('localized map buttons use canonical URL and reminders are not created less
  }
  const nearId='near';
  await store.transactUpdate('seed-near',tx=>tx.createRequest({id:nearId,clientChatId:'500',clientUserId:'500',locale:'de',status:'pending',programId:'boxen',groupId:'box-15',scheduleId:'box-week',personType:'adult',contactName:'Adult Name',participantName:'Adult Name',age:21,guardianRole:'',comment:'',consentVersion:cfg.consentVersion,consentedAt:tx.now,reminders:{enabled:true},appointment:null}));
- await confirm(store,bot,id,nearId,'2026-09-01T13:00:00+02:00');
+ now=Date.parse('2026-09-02T15:00:00Z');
+ await confirm(store,bot,id,nearId);
  assert.equal(Object.values((await store.inspect()).outbox).filter(item=>item.kind==='reminder'&&item.meta.requestId===nearId).length,0);
 });

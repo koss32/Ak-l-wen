@@ -81,44 +81,43 @@ test('truthy nonboolean verifier results do not grant staff access',async()=>{
  assert.equal(staffCards(await store.inspect()).length,0);
 });
 
-test('membership is rechecked for staff date callback, date text, and commit',async()=>{
+test('membership is rechecked for training-choice callback, reply text, and training commit',async()=>{
  // Revoke at the callback stage: the initial card is allowed, but its action remains.
  {
   const store=createMemoryBotStore();await seed(store,'callback-revoked');let n=0;
   const bot=botWith(store,async()=>[true,false][n++]??false);
   await bot.handle(message(1,'/staff callback-revoked'));
-  const date=await action(store,'staff-date');
-  await bot.handle(callback(2,date));
+  const training=await action(store,'staff-training');
+  await bot.handle(callback(2,training));
   const state=await store.inspect();
   assert.equal(Object.keys(state.sessions).length,0);
-  assert.ok(Object.values(state.actions).some(value=>value.type==='staff-date'));
+  assert.ok(Object.values(state.actions).some(value=>value.type==='staff-training'));
   assert.equal(answers(state).length,1);
  }
- // Revoke at date text: the date action is consumed, but no composition/commit is created.
+ // Revoke at free reply text: the reply action is consumed, but no preview/commit is created.
  {
   const store=createMemoryBotStore();await seed(store,'text-revoked');let n=0;
   const bot=botWith(store,async()=>[true,true,false][n++]??false);
   await bot.handle(message(1,'/staff text-revoked'));
-  await bot.handle(callback(2,await action(store,'staff-date')));
-  await bot.handle(message(3,'2026-09-03T18:30:00+02:00'));
+  await bot.handle(callback(2,await action(store,'staff-reply')));
+  await bot.handle(message(3,'Personal reply'));
   const state=await store.inspect();
-  assert.equal(state.sessions['staff:-10099:55']?.value.stage,'staff-date');
-  assert.equal(Object.values(state.actions).some(value=>value.type==='staff-date-commit'),false);
+  assert.equal(state.sessions['staff:-10099:55']?.value.stage,'staff-reply');
+  assert.equal(Object.values(state.actions).some(value=>value.type==='staff-reply-commit'),false);
   assert.equal((await store.getRequest('text-revoked')).status,'pending');
  }
- // Revoke at commit: preview and commit token remain, and the booking is unchanged.
+ // Revoke at training commit: its token remains, and the booking is unchanged.
  {
   const store=createMemoryBotStore({clock:()=>Date.parse('2026-09-01T10:00:00Z')});await seed(store,'commit-revoked');let n=0;
-  const bot=botWith(store,async()=>[true,true,true,false][n++]??false);
+  const bot=botWith(store,async()=>[true,true,false][n++]??false);
   await bot.handle(message(1,'/staff commit-revoked'));
-  await bot.handle(callback(2,await action(store,'staff-date')));
-  await bot.handle(message(3,'2026-09-03T18:30:00+02:00'));
-  const commit=await action(store,'staff-date-commit');
-  await bot.handle(callback(4,commit));
+  await bot.handle(callback(2,await action(store,'staff-training')));
+  const commit=await action(store,'staff-training-commit');
+  await bot.handle(callback(3,commit));
   const state=await store.inspect();
   assert.equal((await store.getRequest('commit-revoked')).status,'pending');
-  assert.equal(state.sessions['staff:-10099:55']?.value.stage,'staff-date-preview');
-  assert.ok(Object.values(state.actions).some(value=>value.type==='staff-date-commit'));
+  assert.equal(Object.keys(state.sessions).length,0);
+  assert.ok(Object.values(state.actions).some(value=>value.type==='staff-training-commit'));
  }
 });
 

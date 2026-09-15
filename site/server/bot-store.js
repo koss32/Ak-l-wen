@@ -12,7 +12,7 @@ export const BOT_CALLBACK_TTL_MS=15*1000;
 export const BOT_INTERACTIVE_DISPATCH_GRACE_MS=30*1000;
 const BACKGROUND_KINDS=new Set(['reminder','checkin']);
 const clone=value=>value===undefined?undefined:structuredClone(value);
-const freshState=()=>({schema:2,sessions:{},requests:{},clients:{},updates:{},actions:{},outbox:{},recipientSequence:{},recipientBlockedUntil:{}});
+const freshState=()=>({schema:2,sessions:{},requests:{},requestSequence:0,clients:{},updates:{},actions:{},outbox:{},recipientSequence:{},recipientBlockedUntil:{}});
 const id=()=>randomUUID().replaceAll('-','');
 const berlinHour=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',hourCycle:'h23'});
 const localHour=at=>Number(berlinHour.format(new Date(at)));
@@ -63,7 +63,7 @@ function txFacade(state,{now,updateId,nonce}){
  };
  const request=requestId=>{const value=state.requests[String(requestId)];return value&&value.expiresAt>now?clone(value):undefined;};
  return {
-  now,updateId,newToken:(length=16)=>token(length),newUuid:()=>{const x=token(32);return `${x.slice(0,8)}-${x.slice(8,12)}-4${x.slice(13,16)}-a${x.slice(17,20)}-${x.slice(20,32)}`;},
+  now,updateId,newToken:(length=16)=>token(length),nextRequestId:()=>{let next=Number.isSafeInteger(state.requestSequence)&&state.requestSequence>=0?state.requestSequence:0;do{next++;}while(state.requests[String(next)]);state.requestSequence=next;return String(next);},
   getSession:key=>clone(state.sessions[String(key)]?.value),putSession,clearSession:key=>delete state.sessions[String(key)],
   getClient:userId=>clone(state.clients[String(userId)]),putClient:(userId,value)=>{const existing=state.clients[String(userId)]||{};state.clients[String(userId)]={...clone(existing),...clone(value),expiresAt:now+BOT_RETENTION_MS};},
   listClientRequests(userId){const clientUserId=String(userId);return Object.values(state.requests).filter(record=>record.expiresAt>now&&String(record.clientUserId)===clientUserId).sort((a,b)=>b.createdAt-a.createdAt||b.updatedAt-a.updatedAt||(String(a.id)<String(b.id)?1:String(a.id)>String(b.id)?-1:0)).map(clone);},
@@ -84,7 +84,7 @@ function txFacade(state,{now,updateId,nonce}){
 }
 function normalized(raw){
  if(!raw)return freshState();const parsed=typeof raw==='string'?JSON.parse(raw):clone(raw),base=freshState();
- return {...base,...parsed,sessions:parsed.sessions||{},requests:parsed.requests||{},clients:parsed.clients||{},updates:parsed.updates||{},actions:parsed.actions||{},outbox:parsed.outbox||{},recipientSequence:parsed.recipientSequence||{},recipientBlockedUntil:parsed.recipientBlockedUntil||{}};
+ return {...base,...parsed,sessions:parsed.sessions||{},requests:parsed.requests||{},requestSequence:Number.isSafeInteger(parsed.requestSequence)&&parsed.requestSequence>=0?parsed.requestSequence:0,clients:parsed.clients||{},updates:parsed.updates||{},actions:parsed.actions||{},outbox:parsed.outbox||{},recipientSequence:parsed.recipientSequence||{},recipientBlockedUntil:parsed.recipientBlockedUntil||{}};
 }
 function createStore({readSnapshot,commitSnapshot,clock,maxBytes=BOT_MAX_STATE_BYTES,kind}){
  const transact=async(updateId,reducer,{retries=64}={})=>{

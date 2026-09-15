@@ -294,6 +294,6 @@ async function main(){
  process.stdout.write(`${serializeResult(result)}\n`);
  process.exitCode=result.ok?0:1;
 }
-if(process.argv[1]&&process.argv[1].endsWith('/telegram-ops.js'))main().catch(()=>{process.exitCode=1;process.stdout.write('{"ok":false,"command":"check","code":"TRANSPORT_FAILED"}\n');});
+if(process.argv[1]?.replaceAll('\\','/').endsWith('/telegram-ops.js'))main().catch(()=>{process.exitCode=1;process.stdout.write('{"ok":false,"command":"check","code":"TRANSPORT_FAILED"}\n');});
 
 export {EXPECTED_PRIVACY,PREVIEW_ORIGIN,PREVIEW_BRANCH,ENV_NAMES,aggregatesFromState,inspectWebhook,mutationAllowed,preconditions};

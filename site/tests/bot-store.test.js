@@ -13,6 +13,16 @@ test('whole update transaction dedupes atomically, retries conflicts, and does n
  const state=await store.inspect();assert.equal(Object.values(state.outbox).filter(x=>x.text==='once').length,1);
 });
 
+test('request numbers start at 1, increase atomically, and do not overwrite an existing numeric request',async()=>{
+ const store=createMemoryBotStore();
+ const first=(await store.transactUpdate('request-1',tx=>tx.nextRequestId())).result;
+ const second=(await store.transactUpdate('request-2',tx=>tx.nextRequestId())).result;
+ assert.deepEqual([first,second],['1','2']);
+ await store.createBooking({id:'3'});
+ const next=(await store.transactUpdate('request-3',tx=>tx.nextRequestId())).result;
+ assert.equal(next,'4');
+});
+
 test('opaque revisions avoid ABA and delivery has lease + begin fence with crash uncertainty',async()=>{
  let now=0;const store=createMemoryBotStore({clock:()=>now});await store.setSession('x',{stage:'a'});const first=(await store.getSession('x')).revision;await store.clearSession('x');await store.setSession('x',{stage:'a'});assert.notEqual((await store.getSession('x')).revision,first);
  const queued=await store.enqueue('1','hello');const lease=await store.leaseNext('a',10);assert.equal(await store.beginDelivery(queued.id,'wrong'),undefined);const sending=await store.beginDelivery(queued.id,lease.lease.fence,10);assert.equal(sending.state,'sending');now=20;await store.enqueue('2','trigger');assert.equal((await store.inspect()).outbox[queued.id].state,'uncertain');

@@ -39,7 +39,7 @@ Je nach Nutzung können insbesondere verarbeitet werden:
 
 - die Telegram-Nutzer-ID und Chat-ID sowie technische Nachrichten- und Zustellinformationen;
 - die von Telegram übermittelte Sprache bzw. eine im Bot ausgewählte Sprache;
-- bei einer Anfrage: Name der Kontaktperson und der teilnehmenden Person, Alter, Angaben zu erwachsener oder minderjähriger Person und gegebenenfalls Rolle/Angaben der elterlichen, gesetzlichen oder sonst autorisierten Vertretung;
+- bei einer Anfrage: Telegram-Kontakt oder Telefonnummer und Name der teilnehmenden Person, Alter, Angaben zu erwachsener oder minderjähriger Person und gegebenenfalls Rolle/Angaben der elterlichen, gesetzlichen oder sonst autorisierten Vertretung;
 - gewünschte Richtung/Gruppe, gewünschte Zeiten bzw. Terminwünsche und ein freiwilliger Kommentar;
 - Zeitpunkt, Version und Inhalt der Einwilligungs-/Bestätigungsangaben, soweit der Bot diese abfragt, sowie Status, Änderungs- und Versionsinformationen der Anfrage;
 - Nachrichten und Antworten des zuständigen Personals innerhalb des Bot-Vorgangs;
@@ -144,7 +144,7 @@ E-mail: **aklggmbh@gmail.com**
 
 ### 3. Какие данные могут обрабатываться
 
-В зависимости от использования это могут быть идентификатор пользователя Telegram и идентификатор чата, язык из Telegram или выбранный в боте язык; имена контактного лица и участника, возраст, сведения о совершеннолетии/несовершеннолетии и, при необходимости, роль и данные родителя, законного или иного уполномоченного представителя; направление/группа, желаемое расписание или дата и необязательный комментарий; время, версия и содержание подтверждений согласия; статус и история изменений заявки; сообщения и ответы сотрудников; после подтверждения — подтверждённая дата и нужные статусные сведения; только при отдельном выборе — напоминание примерно за два часа до будущей подтверждённой встречи; а также данные технической доставки: содержание очереди, получатель, попытки и время доставки, ID сообщений Telegram и другие метаданные.
+В зависимости от использования это могут быть идентификатор пользователя Telegram и идентификатор чата, язык из Telegram или выбранный в боте язык; контакт Telegram или номер телефона и имя участника, возраст, сведения о совершеннолетии/несовершеннолетии и, при необходимости, роль и данные родителя, законного или иного уполномоченного представителя; направление/группа, желаемое расписание или дата и необязательный комментарий; время, версия и содержание подтверждений согласия; статус и история изменений заявки; сообщения и ответы сотрудников; после подтверждения — подтверждённая дата и нужные статусные сведения; только при отдельном выборе — напоминание примерно за два часа до будущей подтверждённой встречи; а также данные технической доставки: содержание очереди, получатель, попытки и время доставки, ID сообщений Telegram и другие метаданные.
 
 Telegram обрабатывает сообщения также по собственным правилам. История чата Telegram находится вне контроля хранения этого приложения. ID Telegram и чата нужны, чтобы связать заявку с правильным личным чатом и ответить; анонимное бронирование через этот бот невозможно.
 

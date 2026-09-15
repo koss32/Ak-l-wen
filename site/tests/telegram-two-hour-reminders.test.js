@@ -21,6 +21,7 @@ async function bookWithOptIn(store,bot){
  await bot.handle(cb(id++,10,await button(store,'15+ лет')));
  await bot.handle(cb(id++,10,await button(store,'Согласен/согласна')));
  await bot.handle(cb(id++,10,await button(store,'Взрослый участник')));
+ await bot.handle(msg(id++,10,'+49 151 1234567'));
  await bot.handle(msg(id++,10,'Adult Name'));
  await bot.handle(msg(id++,10,'21'));
  await bot.handle(cb(id++,10,await button(store,'Понедельник, Среда, Пятница · 18:30–20:00 · Europe/Berlin')));

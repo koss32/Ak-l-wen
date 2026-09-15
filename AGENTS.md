@@ -16,6 +16,7 @@ Then read **`site/AI-MAP.md`** for exact file/function ownership and **`site/REL
 - `codex/site-v1` is deprecated/historical. Never switch back to it for new implementation work.
 - Do not confuse Release 2 with historical v2 design concepts.
 - Standalone preview: `concepts/ak-loewen-valset-release-2.html`; build from `site/`.
+- Current owner-authorized radical landing redesign brief: **`docs/redesign/OPUS5-RADICAL-LANDING-REDESIGN-BRIEF.md`**. For that redesign task, it supersedes older visual-preservation constraints while keeping factual/data/backend constraints authoritative. It explicitly requires a landing page and retains the current AK orange as roughly 20–30% of visible color presence in at least one serious color direction/state.
 
 ## Pending owner-requested change — VALSET navigation
 

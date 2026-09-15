@@ -21,6 +21,7 @@ try{
   checks.push(profile.name+' layout, images, anchors, accordion, menu');await c.close();
  }
  const c=await context({viewport:{width:1280,height:900}}),p=await c.newPage();await p.goto(base+'/de/');
+ await p.locator('.entry-card.b .valset-btn').click();await p.waitForFunction(()=>location.hash==='#valset');assert.equal(await p.locator('#valset').evaluate(el=>el.getBoundingClientRect().top<150),true);await p.locator('#valset [data-direction="valset"]').first().click();await p.waitForFunction(()=>location.hash==='#probetraining');assert.equal(await p.locator('#directionId').inputValue(),'valset');checks.push('VALSET hero opens its section and its booking link preselects VALSET');
  await p.locator('#preise [data-direction="sambo-mma"]').click();await p.locator('#groupId').selectOption('sambo-9-15');
  await p.locator('#name').fill('Test Person');await p.locator('#email').fill('test@example.com');await p.locator('#phone').fill('+49 (151) 123-4567');await p.locator('#age').fill('16');await p.locator('#consent').check();
  await p.locator('#submit-trial').click();assert.equal(await p.locator('#age').getAttribute('aria-invalid'),'true');await p.locator('#apply-group').click();assert.equal(await p.locator('#groupId').inputValue(),'sambo-16');

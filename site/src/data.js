@@ -25,10 +25,14 @@ export const schedules = [
 ].map(s=>({...s,timezone:'Europe/Berlin'}));
 export const trainers = [
  {id:'anar',programId:'sambo-mma',name:'Anar Karimov',languages:['ru','tr','uk'],image:'coach.webp',portraitStatus:'illustration',bioKey:'anarBio',approachKey:'anarApproach',achievementKey:'anarAchievement',biographyStatus:'owner-supplied',achievementsStatus:'owner-supplied'},
- {id:'namig',programId:'boxen',name:'Namig Aliyev',languages:[],image:'namig',portraitStatus:'approved',instagram:'https://www.instagram.com/aliyev__11',bioKey:'namigBio',approachKey:'namigApproach',biographyStatus:'owner-supplied',achievementsStatus:'not-listed'}
+ {id:'namig',programId:'boxen',name:'Namih Aliyev',languages:[],image:'namig',portraitStatus:'approved',instagram:'https://www.instagram.com/aliyev__11',bioKey:'namigBio',approachKey:'namigApproach',biographyStatus:'owner-supplied',achievementsStatus:'not-listed'}
 ];
 export const contacts = {
  email:'aklggmbh@gmail.com',telegram:'https://t.me/ak_loewenbot',instagram:'https://www.instagram.com/VALSET_SOLINGEN/',
  whatsappUA:'https://wa.me/380967542528',whatsappDE:'https://wa.me/4915158873852',map:'https://maps.app.goo.gl/q7yJ8i5ee1tLey8j8',trainingAddress:'Werwolf 8, 42651 Solingen'
 };
-export const legal = {entityName:'AK-LOEWEN gGmbH',manager:'Dietrich Schmelzer',registeredAddress:'Parallelstraße 6, 42719 Solingen',publicationStatus:'published',consentVersion:'telegram-2026-09-15-v1'};
+export const legal = {
+ entityName:'AK-LOEWEN gGmbH',manager:'Dietrich Schmelzer',registeredAddress:'Parallelstraße 6, 42719 Solingen',country:'Deutschland',
+ phone:'+49 157 30447730',registerCourt:'Amtsgericht Wuppertal',registerNumber:'HRB 36478',
+ publicationStatus:'published',consentVersion:'telegram-2026-09-15-v1'
+};

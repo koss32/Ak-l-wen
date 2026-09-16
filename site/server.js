@@ -2,7 +2,7 @@ import http from 'node:http';
 import {readFile,stat,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {render} from './src/render.js';
+import {render} from './src/render-final.js';
 import {entryPage} from './src/entry.js';
 import {legal} from './src/data.js';
 import {createTrialService} from './server/trial-requests.js';
